@@ -12,7 +12,6 @@ term_mo <- term_yr*12
 mortgage_rate_mo <- (mortgage_rate_yr+1)^(1/12)-1
 market_rate_mo <- (market_rate_yr+1)^(1/12)-1
 
-
 #"annuity formula" below found on https://www.wallstreetmojo.com/mortgage-formula/
 monthly_payment <- start_balance*mortgage_rate_mo*(1+mortgage_rate_mo)^(term_mo)/
   ((1+mortgage_rate_mo)^(term_mo)-1)
@@ -54,16 +53,23 @@ cash <- rep(start_balance,term_mo+1)
 
 df <- data.frame(month,market_balance,cash,mortgage_expenditure,mortgage_expenditure_wo_fee)
 
-ggplot(data = df, aes(x = month))+
-  geom_line(aes(y = market_balance,linetype = 'dotted'))+
-  geom_line(aes(y = cash,linetype = 'solid'))+
-  geom_line(aes(y = mortgage_expenditure, linetype = 'longdash'))+
-  geom_line(aes(y = mortgage_expenditure_wo_fee), linetype = 'blank')+
-  ylim(0,NA)+
-  theme(legend.position='top', legend.title=element_blank())
+#make df 'tidy' (ie arranged so all EUR values are in 1 column)
+#note that I give it a new name, since I'll need original df in geom_ribbon
+df_tidy <- df %>% pivot_longer(!month,names_to = 'balance_type',values_to = 'euro')
 
-#try graphing it differently below. Make df 'tidy' ie the way things would be
-#organized in JMP with one column for all EUR values and one column for headers?
-#https://community.rstudio.com/t/adding-manual-legend-to-ggplot2/41651
+#sort the df
+df_tidy <- df_tidy[order(df_tidy$balance_type,df_tidy$month),]
 
-
+ggplot(data = df_tidy, aes(x = month, y = euro, group = balance_type, 
+                      linetype = balance_type))+
+  geom_line()+
+  scale_linetype_manual(values=c('solid','dotted','longdash','blank'))+
+  geom_ribbon(data=df,aes(x=month,ymin=mortgage_expenditure_wo_fee, ymax=mortgage_expenditure),
+              fill='red',alpha=0.6,inherit.aes=FALSE)+
+  geom_ribbon(data=df,aes(x=month,ymin=cash, ymax=mortgage_expenditure_wo_fee),
+              fill='red',alpha=0.3,inherit.aes=FALSE)+
+  geom_ribbon(data=df,aes(x=month,ymin=mortgage_expenditure, ymax=market_balance),
+              fill='orange',alpha=0.3,inherit.aes=FALSE)+
+  ylim(0,NA)
+  
+#now, fill in area under cash line. I think this will be a different function (area fill?)
