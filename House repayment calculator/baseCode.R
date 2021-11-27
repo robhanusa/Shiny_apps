@@ -84,33 +84,32 @@ p_noMarket <- ggplot(data = filter(df_tidy,df_tidy$balance_type != 'market_balan
             aes(x = month, y = euro, group = balance_type,
                 linetype = balance_type))
 p_line <- geom_line(size = 0.8)
-  #I'm choosing the linetypes and labels for legend below. the MANUAL function
-  #is used because I'm manually setting the linetype
+#I'm choosing the linetypes and labels for legend below. the MANUAL function
+#is used because I'm manually setting the linetype
 p_linetype <- scale_linetype_manual(values = c('solid','dashed','blank','blank'),
                         labels = c('Cash Baseline',
                                    'Total Mortage Expenditure','',''))
 p_penalty_ribbon <- geom_ribbon(data = df,aes(x = month,ymin = mortgage_expenditure_wo_fee, 
                             ymax = mortgage_expenditure,fill = 'darkerRed'),
               inherit.aes = FALSE)
-  #note that I need to set show.legend = FALSE for all ribbons except 1, otherwise
-  #they overlap and the colors look darker
+#note that I need to set show.legend = FALSE for all ribbons except 1, otherwise
+#they overlap and the colors look darker
 p_interest_ribbon <- geom_ribbon(data = df,aes(x = month,ymin = cash, 
                             ymax = mortgage_expenditure_wo_fee,fill = 'faintRed'),
               inherit.aes = FALSE, show.legend = FALSE)
 p_base_ribbon <- geom_ribbon(data = df,aes(x = month,ymin = x_axis, 
                             ymax = cash,fill = 'faintBlue'),
               inherit.aes = FALSE,show.legend = FALSE)
-  #here
 p_fill_legend <- scale_fill_manual(name = '',guide = 'legend',
                     values = c(darkerRed = darkerRed, faintRed = faintRed,
                                faintBlue = faintBlue),
                     labels = c('Prepayment Penalty','Interest','Base'))
-  #remove title, increase size, remove gray background on line types
+#remove title, increase size, remove gray background on line types
 p_theme <- theme(legend.title = element_blank(),legend.key.size = unit(1.5,"lines"), 
         panel.border = element_blank(),
         panel.grid = element_blank())
 p_xScale <- scale_x_continuous(name = 'Month',limits = c(0,term_mo), expand = c(0,0))
-  #here
+
 p_yScale <- scale_y_continuous(name = 'Euro in thousands',
                      limits = c(0,round_any(max(mortgage_expenditure),50,f = ceiling)),
                      expand = c(0,0))
@@ -146,43 +145,32 @@ if(include_market_return){
   p <- p_noMarket + p_line + p_linetype + p_penalty_ribbon + p_interest_ribbon + 
     p_base_ribbon + p_fill_legend + p_theme + p_xScale + p_yScale
 }
-p
+
 
 #now want to create graph for monthly payment
-monthly_budget <- 600
 monthly_payment_real <- round(monthly_payment*1000)
 
-#if monthly payment < monthly budget
-
-p_budget <- ggplot(df_bar,aes(x = '',y = payments, fill = as.factor(payments)))+
-  geom_bar(position = 'stack', stat = 'identity', color = 'black')+
-  ggtitle(glue('Monthly Payment: EUR {monthly_payment_real}'))+
-  theme(legend.position = 'none', plot.title = element_text(hjust = 0.5),
+p_proto_bar <- geom_bar(position = 'stack', stat = 'identity', color = 'black')
+p_proto_title <- ggtitle(glue('Monthly Payment:\nEUR {monthly_payment_real}'))
+p_proto_theme <- theme(legend.position = 'none', plot.title = element_text(hjust = 0.5),
         axis.title = element_blank(), axis.ticks = element_blank(),
-        panel.background = element_blank(),panel.grid = element_blank())+
-  scale_y_continuous(breaks = c(monthly_budget))
+        axis.text.y = element_text(size = 15),
+        panel.background = element_blank(),panel.grid = element_blank())
+p_proto_yScale <- scale_y_continuous(breaks = c(monthly_budget))
+p_proto_xScale <- scale_x_discrete(expand = c(0,0))
 
 if(monthly_budget > monthly_payment_real){
   payments <- c(monthly_budget - monthly_payment_real,monthly_payment_real)
   df_bar <- data.frame(payments)
-  p <- p_budget + scale_fill_manual(values = c('white','green'))
-    #scale_y_continuous(breaks = c(monthly_budget))
+  p_budget <- ggplot(df_bar,aes(x = '',y = payments, fill = as.factor(payments)))
+  p2 <- p_budget + p_proto_bar + p_proto_title + p_proto_theme + p_proto_yScale +
+    p_proto_xScale + scale_fill_manual(values = c('white','green'))
 } else {
   payments <- c(monthly_budget,monthly_payment_real - monthly_budget)
   df_bar <- data.frame(payments)
-  p <- p_budget + scale_fill_manual(values = c('red','green'))
+  p_budget <- ggplot(df_bar,aes(x = '',y = payments, fill = as.factor(payments)))
+  p2 <- p_budget + p_proto_bar + p_proto_title + p_proto_theme + p_proto_yScale +
+    p_proto_xScale + scale_fill_manual(values = c('red','green'))
 }
-p
-# 
-# #if monthly payment > monthly budget
-# monthly_payment_real <- 1200
-# 
-#                      
-# ggplot(df_bar,aes(x = '',y = payments, fill = as.factor(payments)))+
-#   geom_bar(position = 'stack', stat = 'identity', color = 'black')+
-#   scale_fill_manual(values = c('red','green'))+
-#   ggtitle(glue('Monthly Payment: EUR {monthly_payment_real}'))+
-#   theme(legend.position = 'none', plot.title = element_text(hjust = 0.5),
-#         axis.title = element_blank(), axis.ticks = element_blank(),
-#         panel.background = element_blank(),panel.grid = element_blank())+
-#   scale_y_continuous(breaks = c(monthly_budget))
+p2
+
