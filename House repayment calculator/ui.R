@@ -21,7 +21,7 @@ ui <- fluidPage(
                           value = 1000, step = 1),
              checkboxInput(inputId = 'include_market_return', 'Compare to market return?'),
              numericInput(inputId = 'market_rate_yr', 'Market APY', 
-                          value = 10, step = 5),
+                          value = 10, step = 1),
              #selectInput("failures", "Up to how many failures:", c(0,1,2,3))
            )),
     column(7,

@@ -150,6 +150,8 @@ if(include_market_return){
 #now want to create graph for monthly payment
 monthly_payment_real <- round(monthly_payment*1000)
 
+monthly_budget <- 700
+
 p_proto_bar <- geom_bar(position = 'stack', stat = 'identity', color = 'black')
 p_proto_title <- ggtitle(glue('Monthly Payment:\nEUR {monthly_payment_real}'))
 p_proto_theme <- theme(legend.position = 'none', plot.title = element_text(hjust = 0.5),
@@ -161,14 +163,16 @@ p_proto_xScale <- scale_x_discrete(expand = c(0,0))
 
 if(monthly_budget > monthly_payment_real){
   payments <- c(monthly_budget - monthly_payment_real,monthly_payment_real)
-  df_bar <- data.frame(payments)
-  p_budget <- ggplot(df_bar,aes(x = '',y = payments, fill = as.factor(payments)))
+  cat <- factor(c('a','b'), levels = c('a','b'))
+  df_bar <- data.frame(payments, cat)
+  p_budget <- ggplot(df_bar,aes(x = '',y = payments, fill = cat))
   p2 <- p_budget + p_proto_bar + p_proto_title + p_proto_theme + p_proto_yScale +
     p_proto_xScale + scale_fill_manual(values = c('white','green'))
 } else {
   payments <- c(monthly_budget,monthly_payment_real - monthly_budget)
-  df_bar <- data.frame(payments)
-  p_budget <- ggplot(df_bar,aes(x = '',y = payments, fill = as.factor(payments)))
+  cat <- factor(c('a','b'), levels = c('b','a'))
+  df_bar <- data.frame(payments,cat)
+  p_budget <- ggplot(df_bar,aes(x = '',y = payments, fill = cat))
   p2 <- p_budget + p_proto_bar + p_proto_title + p_proto_theme + p_proto_yScale +
     p_proto_xScale + scale_fill_manual(values = c('red','green'))
 }

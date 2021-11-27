@@ -160,7 +160,7 @@ return(p)
 
 #now want to create graph for monthly payment
 output$p2 <- renderPlotly({
-  
+#repeating code to make sure the 2nd graph also changes when it's updated
   mortgage_rate_yr_percent <- input$mortgage_rate_yr/100
   market_rate_yr_percent <- input$market_rate_yr/100
   early_penalty_percent <- input$early_penalty/100
@@ -185,14 +185,16 @@ p_proto_xScale <- scale_x_discrete(expand = c(0,0))
 
 if(input$monthly_budget > monthly_payment_real){
   payments <- c(input$monthly_budget - monthly_payment_real,monthly_payment_real)
-  df_bar <- data.frame(payments)
-  p_budget <- ggplot(df_bar,aes(x = '',y = payments, fill = as.factor(payments)))
+  cat <- factor(c('a','b'), levels = c('a','b'))
+  df_bar <- data.frame(payments, cat)
+  p_budget <- ggplot(df_bar,aes(x = '',y = payments, fill = cat))
   p2 <- p_budget + p_proto_bar + p_proto_title + p_proto_theme + p_proto_yScale +
     p_proto_xScale + scale_fill_manual(values = c('white','green'))
 } else {
   payments <- c(input$monthly_budget,monthly_payment_real - input$monthly_budget)
-  df_bar <- data.frame(payments)
-  p_budget <- ggplot(df_bar,aes(x = '',y = payments, fill = as.factor(payments)))
+  cat <- factor(c('a','b'), levels = c('b','a'))
+  df_bar <- data.frame(payments,cat)
+  p_budget <- ggplot(df_bar,aes(x = '',y = payments, fill = cat))
   p2 <- p_budget + p_proto_bar + p_proto_title + p_proto_theme + p_proto_yScale +
     p_proto_xScale + scale_fill_manual(values = c('red','green'))
 }
@@ -200,6 +202,5 @@ return(p2)
 })
 }
 
-#need to get p2 to update. Somehow it's not in a reactive environment?
-#also legend formatting needs to be redone
-#Checkbox for market return doesn't work
+#legend formatting needs to be redone see link: 
+#https://coderedirect.com/questions/586568/plotly-build-modifies-legend-and-labels
