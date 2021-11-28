@@ -150,8 +150,6 @@ if(include_market_return){
 #now want to create graph for monthly payment
 monthly_payment_real <- round(monthly_payment*1000)
 
-monthly_budget <- 700
-
 p_proto_bar <- geom_bar(position = 'stack', stat = 'identity', color = 'black')
 p_proto_title <- ggtitle(glue('Monthly Payment:\nEUR {monthly_payment_real}'))
 p_proto_theme <- theme(legend.position = 'none', plot.title = element_text(hjust = 0.5),

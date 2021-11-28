@@ -86,74 +86,118 @@ df_tidy <- df %>% pivot_longer(!month,names_to = 'balance_type',
 df_tidy <- df_tidy[order(df_tidy$balance_type,df_tidy$month),]
 
 
-#allow user to toggle include_market_return
-p_market <- ggplot(data = df_tidy, aes(x = month, y = euro, group = balance_type, 
-                           linetype = balance_type))
+# #allow user to toggle include_market_return
+# p_market <- ggplot(data = df_tidy, aes(x = month, y = euro, group = balance_type, 
+#                            linetype = balance_type))
+# 
+# p_noMarket <- ggplot(data = filter(df_tidy,df_tidy$balance_type != 'market_balance'), 
+#             aes(x = month, y = euro, group = balance_type,
+#                 linetype = balance_type))
+# p_line <- geom_line(size = 0.8)
+# #I'm choosing the linetypes and labels for legend below. the MANUAL function
+# #is used because I'm manually setting the linetype
+# p_linetype <- scale_linetype_manual(values = c('solid','dashed','blank','blank'),
+#                         labels = c('Cash Baseline',
+#                                    'Total Mortage Expenditure','',''))
+# p_penalty_ribbon <- geom_ribbon(data = df,aes(x = month,ymin = mortgage_expenditure_wo_fee, 
+#                             ymax = mortgage_expenditure,fill = 'darkerRed'),
+#               inherit.aes = FALSE)
+# #note that I need to set show.legend = FALSE for all ribbons except 1, otherwise
+# #they overlap and the colors look darker
+# p_interest_ribbon <- geom_ribbon(data = df,aes(x = month,ymin = cash, 
+#                             ymax = mortgage_expenditure_wo_fee,fill = 'faintRed'),
+#               inherit.aes = FALSE, show.legend = FALSE)
+# p_base_ribbon <- geom_ribbon(data = df,aes(x = month,ymin = x_axis, 
+#                             ymax = cash,fill = 'faintBlue'),
+#               inherit.aes = FALSE,show.legend = FALSE)
+# p_fill_legend <- scale_fill_manual(name = '',guide = 'legend',
+#                     values = c(darkerRed = darkerRed, faintRed = faintRed,
+#                                faintBlue = faintBlue),
+#                     labels = c('Prepayment Penalty','Interest','Base'))
+# #remove title, increase size, remove gray background on line types
+# p_theme <- theme(legend.title = element_blank(),legend.key.size = unit(1.5,"lines"), 
+#         panel.border = element_blank(),
+#         panel.grid = element_blank())
+# p_xScale <- scale_x_continuous(name = 'Month',limits = c(0,term_mo), expand = c(0,0))
+# 
+# p_yScale <- scale_y_continuous(name = 'Euro in thousands',
+#                      limits = c(0,round_any(max(mortgage_expenditure),50,f = ceiling)),
+#                      expand = c(0,0))
+# 
+# #below are adjusted plot properties to include market balance comparison
+# p_linetype_market <- scale_linetype_manual(values = c('solid','dotted','dashed',
+#                                                       'blank','blank'),
+#                       labels = c('Cash Baseline','Market Return',
+#                                  'Total Mortage Expenditure','',''))
+# 
+# p_market_ribbon <- geom_ribbon(data = df,aes(x = month,ymin = mortgage_expenditure,
+#                                              ymax=market_balance, 
+#                                              fill='faintOrange'),
+#                                inherit.aes = FALSE, show.legend = FALSE)
+# 
+# p_fill_legend_market <- scale_fill_manual(name = '',guide = 'legend',
+#                                    values = c(darkerRed = darkerRed, 
+#                                               faintRed = faintRed,
+#                                               faintOrange = faintOrange, 
+#                                               faintBlue = faintBlue),
+#                                    labels = c('Prepayment Penalty','Interest',
+#                                               'Market Return Above Mortgage','Base'))
+# 
+# p_yScale_market <- scale_y_continuous(name = 'Euro in thousands',
+#                                         limits = c(0,round_any(max(market_balance),
+#                                                                50,f = ceiling)),
+#                                         expand = c(0,0))
+# if(input$include_market_return){
+#   p <- p_market + p_line + p_linetype_market + p_penalty_ribbon + p_interest_ribbon + 
+#     p_base_ribbon + p_market_ribbon + p_fill_legend_market + p_theme + p_xScale + 
+#     p_yScale_market
+# } else {
+#   p <- p_noMarket + p_line + p_linetype + p_penalty_ribbon + p_interest_ribbon + 
+#     p_base_ribbon + p_fill_legend + p_theme + p_xScale + p_yScale
+# }
+# return(p)
+# })
 
-p_noMarket <- ggplot(data = filter(df_tidy,df_tidy$balance_type != 'market_balance'), 
-            aes(x = month, y = euro, group = balance_type,
-                linetype = balance_type))
-p_line <- geom_line(size = 0.8)
-#I'm choosing the linetypes and labels for legend below. the MANUAL function
-#is used because I'm manually setting the linetype
-p_linetype <- scale_linetype_manual(values = c('solid','dashed','blank','blank'),
-                        labels = c('Cash Baseline',
-                                   'Total Mortage Expenditure','',''))
-p_penalty_ribbon <- geom_ribbon(data = df,aes(x = month,ymin = mortgage_expenditure_wo_fee, 
-                            ymax = mortgage_expenditure,fill = 'darkerRed'),
-              inherit.aes = FALSE)
-#note that I need to set show.legend = FALSE for all ribbons except 1, otherwise
-#they overlap and the colors look darker
-p_interest_ribbon <- geom_ribbon(data = df,aes(x = month,ymin = cash, 
-                            ymax = mortgage_expenditure_wo_fee,fill = 'faintRed'),
-              inherit.aes = FALSE, show.legend = FALSE)
-p_base_ribbon <- geom_ribbon(data = df,aes(x = month,ymin = x_axis, 
-                            ymax = cash,fill = 'faintBlue'),
-              inherit.aes = FALSE,show.legend = FALSE)
-p_fill_legend <- scale_fill_manual(name = '',guide = 'legend',
-                    values = c(darkerRed = darkerRed, faintRed = faintRed,
-                               faintBlue = faintBlue),
-                    labels = c('Prepayment Penalty','Interest','Base'))
-#remove title, increase size, remove gray background on line types
-p_theme <- theme(legend.title = element_blank(),legend.key.size = unit(1.5,"lines"), 
-        panel.border = element_blank(),
-        panel.grid = element_blank())
-p_xScale <- scale_x_continuous(name = 'Month',limits = c(0,term_mo), expand = c(0,0))
 
-p_yScale <- scale_y_continuous(name = 'Euro in thousands',
-                     limits = c(0,round_any(max(mortgage_expenditure),50,f = ceiling)),
-                     expand = c(0,0))
+faintOrange <- 'rgba(255,165,200,.3)'
+darkerRed <- 'rgba(255,0,0,.7)'
+faintRed <- 'rgba(255,0,0,.3)'
+faintBlue <- 'rgba(0,0,255,.2)'
 
-#below are adjusted plot properties to include market balance comparison
-p_linetype_market <- scale_linetype_manual(values = c('solid','dotted','dashed',
-                                                      'blank','blank'),
-                      labels = c('Cash Baseline','Market Return',
-                                 'Total Mortage Expenditure','',''))
-
-p_market_ribbon <- geom_ribbon(data = df,aes(x = month,ymin = mortgage_expenditure,
-                                             ymax=market_balance, 
-                                             fill='faintOrange'),
-                               inherit.aes = FALSE, show.legend = FALSE)
-
-p_fill_legend_market <- scale_fill_manual(name = '',guide = 'legend',
-                                   values = c(darkerRed = darkerRed, 
-                                              faintRed = faintRed,
-                                              faintOrange = faintOrange, 
-                                              faintBlue = faintBlue),
-                                   labels = c('Prepayment Penalty','Interest',
-                                              'Market Return Above Mortgage','Base'))
-
-p_yScale_market <- scale_y_continuous(name = 'Euro in thousands',
-                                        limits = c(0,round_any(max(market_balance),
-                                                               50,f = ceiling)),
-                                        expand = c(0,0))
+p <- plot_ly(df, x = ~month, y = ~cash, name = 'Cash baseline', mode = 'lines',
+               type = 'scatter', line = list(color = 'black', dash = 'solid'))
+p <- p %>% add_trace(y = ~mortgage_expenditure, name = 'Mortgage cost',
+                         line = list(color = 'black', dash = 'dash'))
 if(input$include_market_return){
-  p <- p_market + p_line + p_linetype_market + p_penalty_ribbon + p_interest_ribbon + 
-    p_base_ribbon + p_market_ribbon + p_fill_legend_market + p_theme + p_xScale + 
-    p_yScale_market
-} else {
-  p <- p_noMarket + p_line + p_linetype + p_penalty_ribbon + p_interest_ribbon + 
-    p_base_ribbon + p_fill_legend + p_theme + p_xScale + p_yScale
+  p <- p %>% add_trace(y = ~market_balance, name = 'Market',
+                       line = list(color = 'black', dash = 'dot'))
+  }
+p <- p %>% add_trace(y = ~mortgage_expenditure_wo_fee, name = ' ',
+                         line = list(color = 'white', dash = 'solid', width = 1))
+p <- p %>% add_trace(y = ~x_axis, name = ' ',
+                         line = list(color = 'white', dash = 'solid', width = 1))
+p <- p %>% add_ribbons(ymin = ~mortgage_expenditure_wo_fee, 
+                           ymax = ~mortgage_expenditure,
+                           line = list(color = darkerRed, width = 0), 
+                           fillcolor = darkerRed,
+                           name = 'Early payment fee')
+p <- p %>% add_ribbons(ymin = ~cash, 
+                           ymax = ~mortgage_expenditure_wo_fee,
+                           line = list(color = faintRed, width = 0), 
+                           fillcolor = faintRed,
+                           name = 'Mortgage interest')
+p <- p %>% add_ribbons(ymin = ~x_axis, 
+                           ymax = ~cash,
+                           line = list(color = faintBlue, width = 0), 
+                           fillcolor = faintBlue,
+                           name = 'Base')
+p <- p %>% layout(xaxis = list(title = 'Month'), 
+                      yaxis = list(title = 'Euro in thousands'))
+
+if(input$include_market_return){
+  p <- p %>% add_ribbons(ymin = ~mortgage_expenditure, ymax = ~market_balance,
+                         line = list(color = faintOrange, width = 0), 
+                         fillcolor = faintOrange, name = 'Market return')
 }
 return(p)
 })
