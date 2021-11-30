@@ -17,7 +17,7 @@ ui <- fluidPage(
              numericInput(inputId = 'early_penalty', 'Early repayment penalty in %', 
                           value = 5, step = .1),
              numericInput(inputId = 'monthly_budget', 'Monthly budget in EUR', 
-                          value = 1000, step = 1),
+                          value = 1000, step = 10),
              checkboxInput(inputId = 'include_market_return', 'Compare to market return?'),
              numericInput(inputId = 'market_rate_yr', 'Market APY', 
                           value = 10, step = 1)

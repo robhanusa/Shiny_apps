@@ -4,21 +4,12 @@ library(plyr)
 library(glue)
 library(shiny)
 library(plotly)
-# 
-# #start balance in thousands
-# start_balance <- 100
-# term_yr <- 10
-# mortgage_rate_yr <- 0.015 #need to divide input by 100
-# market_rate_yr <- 0.1 #need to divide input by 100
-# early_penalty <- 0.05 #need to divide input by 100
-# include_market_return <- TRUE
-# input$monthly_budget <- 1000
 
 #define colors
-darkerRed <- rgb(255,0,0,alpha = .7*255,maxColorValue = 255)
-faintRed <- rgb(255,0,0,alpha = .3*255,maxColorValue = 255)
-faintOrange <- rgb(255,165,0,alpha = .3*255,maxColorValue = 255)
-faintBlue <- rgb(0,0,255,alpha = .2*255,maxColorValue = 255)
+faintOrange <- 'rgba(255,165,200,.3)'
+darkerRed <- 'rgba(255,0,0,.7)'
+faintRed <- 'rgba(255,0,0,.3)'
+faintBlue <- 'rgba(0,0,255,.2)'
 
 server <- function(input,output,session){
 
@@ -76,93 +67,6 @@ x_axis <- rep(0,term_mo+1)
 
 df <- data.frame(month,market_balance,cash,mortgage_expenditure,
                  mortgage_expenditure_wo_fee, x_axis)
-
-#make df 'tidy' (ie arranged so all EUR values are in 1 column)
-#note that I give it a new name, since I'll need original df in geom_ribbon
-df_tidy <- df %>% pivot_longer(!month,names_to = 'balance_type',
-                               values_to = 'euro')
-
-#sort the df
-df_tidy <- df_tidy[order(df_tidy$balance_type,df_tidy$month),]
-
-
-# #allow user to toggle include_market_return
-# p_market <- ggplot(data = df_tidy, aes(x = month, y = euro, group = balance_type, 
-#                            linetype = balance_type))
-# 
-# p_noMarket <- ggplot(data = filter(df_tidy,df_tidy$balance_type != 'market_balance'), 
-#             aes(x = month, y = euro, group = balance_type,
-#                 linetype = balance_type))
-# p_line <- geom_line(size = 0.8)
-# #I'm choosing the linetypes and labels for legend below. the MANUAL function
-# #is used because I'm manually setting the linetype
-# p_linetype <- scale_linetype_manual(values = c('solid','dashed','blank','blank'),
-#                         labels = c('Cash Baseline',
-#                                    'Total Mortage Expenditure','',''))
-# p_penalty_ribbon <- geom_ribbon(data = df,aes(x = month,ymin = mortgage_expenditure_wo_fee, 
-#                             ymax = mortgage_expenditure,fill = 'darkerRed'),
-#               inherit.aes = FALSE)
-# #note that I need to set show.legend = FALSE for all ribbons except 1, otherwise
-# #they overlap and the colors look darker
-# p_interest_ribbon <- geom_ribbon(data = df,aes(x = month,ymin = cash, 
-#                             ymax = mortgage_expenditure_wo_fee,fill = 'faintRed'),
-#               inherit.aes = FALSE, show.legend = FALSE)
-# p_base_ribbon <- geom_ribbon(data = df,aes(x = month,ymin = x_axis, 
-#                             ymax = cash,fill = 'faintBlue'),
-#               inherit.aes = FALSE,show.legend = FALSE)
-# p_fill_legend <- scale_fill_manual(name = '',guide = 'legend',
-#                     values = c(darkerRed = darkerRed, faintRed = faintRed,
-#                                faintBlue = faintBlue),
-#                     labels = c('Prepayment Penalty','Interest','Base'))
-# #remove title, increase size, remove gray background on line types
-# p_theme <- theme(legend.title = element_blank(),legend.key.size = unit(1.5,"lines"), 
-#         panel.border = element_blank(),
-#         panel.grid = element_blank())
-# p_xScale <- scale_x_continuous(name = 'Month',limits = c(0,term_mo), expand = c(0,0))
-# 
-# p_yScale <- scale_y_continuous(name = 'Euro in thousands',
-#                      limits = c(0,round_any(max(mortgage_expenditure),50,f = ceiling)),
-#                      expand = c(0,0))
-# 
-# #below are adjusted plot properties to include market balance comparison
-# p_linetype_market <- scale_linetype_manual(values = c('solid','dotted','dashed',
-#                                                       'blank','blank'),
-#                       labels = c('Cash Baseline','Market Return',
-#                                  'Total Mortage Expenditure','',''))
-# 
-# p_market_ribbon <- geom_ribbon(data = df,aes(x = month,ymin = mortgage_expenditure,
-#                                              ymax=market_balance, 
-#                                              fill='faintOrange'),
-#                                inherit.aes = FALSE, show.legend = FALSE)
-# 
-# p_fill_legend_market <- scale_fill_manual(name = '',guide = 'legend',
-#                                    values = c(darkerRed = darkerRed, 
-#                                               faintRed = faintRed,
-#                                               faintOrange = faintOrange, 
-#                                               faintBlue = faintBlue),
-#                                    labels = c('Prepayment Penalty','Interest',
-#                                               'Market Return Above Mortgage','Base'))
-# 
-# p_yScale_market <- scale_y_continuous(name = 'Euro in thousands',
-#                                         limits = c(0,round_any(max(market_balance),
-#                                                                50,f = ceiling)),
-#                                         expand = c(0,0))
-# if(input$include_market_return){
-#   p <- p_market + p_line + p_linetype_market + p_penalty_ribbon + p_interest_ribbon + 
-#     p_base_ribbon + p_market_ribbon + p_fill_legend_market + p_theme + p_xScale + 
-#     p_yScale_market
-# } else {
-#   p <- p_noMarket + p_line + p_linetype + p_penalty_ribbon + p_interest_ribbon + 
-#     p_base_ribbon + p_fill_legend + p_theme + p_xScale + p_yScale
-# }
-# return(p)
-# })
-
-
-faintOrange <- 'rgba(255,165,200,.3)'
-darkerRed <- 'rgba(255,0,0,.7)'
-faintRed <- 'rgba(255,0,0,.3)'
-faintBlue <- 'rgba(0,0,255,.2)'
 
 p <- plot_ly(df, x = ~month, y = ~cash, name = 'Cash baseline', mode = 'lines',
                type = 'scatter', line = list(color = 'black', dash = 'solid'))
@@ -245,6 +149,3 @@ if(input$monthly_budget > monthly_payment_real){
 return(p2)
 })
 }
-
-#legend formatting needs to be redone see link: 
-#https://coderedirect.com/questions/586568/plotly-build-modifies-legend-and-labels
