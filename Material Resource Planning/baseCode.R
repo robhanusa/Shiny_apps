@@ -52,11 +52,7 @@ cons2_tot <- calc_consumption(cons2_per_prod)
 
 #starting stock
 mat1_start <- 200
-ma12_start <- 100
-
-
-###################################################
-#might just want to delete the code below and start from scratch
+mat2_start <- 100
 
 #add order info. I could consider turning this into a dataframe in the future
 order_1 <- c('mat_1' = 200,
@@ -71,21 +67,26 @@ order_3 <- c('mat_1' = 300,
 
 lead_time <- 4
 
-#function to calculate material consumption
-
-
 #initiate vectors of stock of material 1 and 2
 stock1 <- c(mat1_start,rep(0,51))
 stock2 <- c(mat2_start,rep(0,51))
 
 #calculate weekly stock of each material
-stock_1[1] <- mat_start['mat_1']
-for (i in seq(2, length(stock_1))){
-  stock_1[i] <- stock_1[i-1]-#consumption function
-  if(order_1['week'] == i){
-    stock_1[i] <- order_1['mat_1']
+
+calc_stock <- function(start_stock, consumption,material){
+  stock <- c(start_stock-consumption[1],rep(0,51))
+  for (i in 2:length(stock)){
+    stock[i] <- stock[i-1]-consumption[i]
+    for (order in list(order_1,order_2, order_3)){
+      if (order['week'] == i){
+        stock[i] <- stock[i] + order[material] #where material <- 'mat_1' for example
+      }
+    }
   }
+   return(stock)
 }
 
+stock1 <- calc_stock(mat1_start,cons1_tot,'mat_1')
+stock2 <- calc_stock(mat2_start,cons2_tot,'mat_2')
 
-# 
+#need to create order time and make graphs
