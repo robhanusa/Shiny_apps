@@ -114,12 +114,23 @@ vline <- function(x = 0, color = "orange") {
     line = list(color = color, dash="solid")
   )
 }
-
+#create df's for text labels on vertical lines
 receive_text <- c('Receive\norder 1', 'Receive\norder 2', 'Receive\norder 3')
-receive_x <- c(order_1['week'] + 2, order_2['week'] + 2, order_3['week'] + 2)
+receive_x <- c(order_1['week'] + 2, 
+               order_2['week'] + 2, 
+               order_3['week'] + 2)
 receive_y <- c(max(stock1), max(stock1), max(stock1))
-df_text <- data.frame(receive_text, receive_x, receive_y)
 
+place_text <- c('Place\norder 1', 'Place\norder 2', 'Place\norder 3')
+place_x <- c(order_1['week'] - lead_time + 2, 
+             order_2['week'] - lead_time + 2, 
+             order_3['week'] - lead_time + 2)
+place_y <- c(max(stock1)-100, max(stock1)-100, max(stock1)-100)
+
+df_text <- data.frame(receive_text, receive_x, receive_y,
+                      place_text, place_x, place_y)
+
+#graphic for material 1
 p1 <- plot_ly(df, x=~week, y=~stock1, mode = 'lines',type = 'scatter',
               line = list(color = 'grey', width = 2))
 
@@ -131,14 +142,26 @@ p1 <- p1 %>% add_ribbons(ymin = ~stock1_neg,
                          ymax = ~x_axis,
                          line = list(color = 'black', width = 0),
                          fillcolor = faintRed)
-#add vertical lines
+#add vertical lines and format layout
 p1 <- p1 %>% layout(shapes = list(vline(order_1['week']),
                                   vline(order_2['week']),
-                                  vline(order_3['week'])),
-                    showlegend = FALSE)
-#add text labels on vertical lines
+                                  vline(order_3['week']),
+                                  vline(order_1['week'] - lead_time, color = 'red'),
+                                  vline(order_2['week'] - lead_time, color = 'red'),
+                                  vline(order_3['week'] - lead_time, color = 'red')),
+                    showlegend = FALSE,
+                    title = 'Material 1 Stock',
+                    yaxis = list(title = ''),
+                    xaxis = list(title = 'Week'))
+#add text labels on 'receive' vertical lines
 p1 <- p1 %>% add_trace(data = df_text, x = ~receive_x, y = ~receive_y,
                        type = 'scatter', mode = 'text', text = ~receive_text,
                        line = NULL)
+#add text labels on 'place' vertical lines
+p1 <- p1 %>% add_trace(data = df_text, x = ~place_x, y = ~place_y,
+                       type = 'scatter', mode = 'text', text = ~place_text,
+                       line = NULL)
 
 p1
+
+#next, plan out ui and turn into shiny app
