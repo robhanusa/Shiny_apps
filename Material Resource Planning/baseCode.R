@@ -1,6 +1,7 @@
 library(tidyverse)
 library(shiny)
 library(plotly)
+library(dplyr)
 
 #later, I'll need to import the following 2 datasets
 
@@ -21,11 +22,14 @@ cons2_per_prod <- data.frame(prod_1 = rep(0,52),
 
 #allow toggle of all products, and to choose start week
 include_prod1 <- TRUE
-prod1_start <- 2
+prod1_start <- 12
 include_prod2 <- TRUE
-prod2_start <- 3
+prod2_start <-25
 include_prod3 <- TRUE
-prod3_start <- 4
+prod3_start <- 35
+
+faintRed <- 'rgba(255,0,0,.5)'
+faintGreen <- 'rgba(0,255,0,.5)'
 
 #function to calculate weekly consumption. I can probably do this better with
 #lapply than using the for loop- Revisit
@@ -57,13 +61,13 @@ mat2_start <- 100
 #add order info. I could consider turning this into a dataframe in the future
 order_1 <- c('mat_1' = 200,
             'mat_2' = 100,
-            'week' = 2)
+            'week' = 10)
 order_2 <- c('mat_1' = 400,
              'mat_2' = 300,
-             'week' = 6)
+             'week' = 24 )
 order_3 <- c('mat_1' = 300,
              'mat_2' = 200,
-             'week' = 10)
+             'week' = 34)
 
 lead_time <- 4
 
@@ -89,4 +93,52 @@ calc_stock <- function(start_stock, consumption,material){
 stock1 <- calc_stock(mat1_start,cons1_tot,'mat_1')
 stock2 <- calc_stock(mat2_start,cons2_tot,'mat_2')
 
+week <- seq(1,length(stock1))
+x_axis <- rep(0,length(stock1))
+
 #need to create order time and make graphs
+df <- data.frame(week,stock1,stock2,x_axis)
+#create rows where only positive or negative are present, to make the red/green ribbons
+df <- mutate(df,stock1_pos = ifelse(stock1 > 0, stock1, 0))
+df <- mutate(df,stock1_neg = ifelse(stock1 < 0, stock1, 0))
+
+#verticle line function
+vline <- function(x = 0, color = "orange") {
+  list(
+    type = "line",
+    y0 = 0,
+    y1 = 1,
+    yref = "paper",
+    x0 = x,
+    x1 = x,
+    line = list(color = color, dash="solid")
+  )
+}
+
+receive_text <- c('Receive\norder 1', 'Receive\norder 2', 'Receive\norder 3')
+receive_x <- c(order_1['week'] + 2, order_2['week'] + 2, order_3['week'] + 2)
+receive_y <- c(max(stock1), max(stock1), max(stock1))
+df_text <- data.frame(receive_text, receive_x, receive_y)
+
+p1 <- plot_ly(df, x=~week, y=~stock1, mode = 'lines',type = 'scatter',
+              line = list(color = 'grey', width = 2))
+
+p1 <- p1 %>% add_ribbons(ymin = ~x_axis, 
+                         ymax = ~stock1_pos,
+                         line = list(color = 'black', width = 0),
+                         fillcolor = faintGreen)
+p1 <- p1 %>% add_ribbons(ymin = ~stock1_neg, 
+                         ymax = ~x_axis,
+                         line = list(color = 'black', width = 0),
+                         fillcolor = faintRed)
+#add vertical lines
+p1 <- p1 %>% layout(shapes = list(vline(order_1['week']),
+                                  vline(order_2['week']),
+                                  vline(order_3['week'])),
+                    showlegend = FALSE)
+#add text labels on vertical lines
+p1 <- p1 %>% add_trace(data = df_text, x = ~receive_x, y = ~receive_y,
+                       type = 'scatter', mode = 'text', text = ~receive_text,
+                       line = NULL)
+
+p1
