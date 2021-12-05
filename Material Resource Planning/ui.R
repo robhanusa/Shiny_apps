@@ -67,7 +67,8 @@ ui <- fluidPage(
                                    value = 250, step = 1)))
            )),
     column(9,
-           plotlyOutput("p1")
+           plotlyOutput("p1"),
+           verbatimTextOutput("event")
            #plotlyOutput("p2"))
   )
   
