@@ -11,16 +11,6 @@ faintGreen <- 'rgba(0,255,0,.5)'
 server <- function(input,output,session){
   
   output$p1 <- renderPlotly({
-    d <- event_data("plotly_relayout", source = "trajectory")
-    
-    selected_point <- if (!is.null(d[["shapes[0].x0"]])) {
-      xint <- d[["shapes[0].x0"]]
-      xpt <- x[which.min(abs(x - xint))]
-      list(x = xpt, y = y[which(x == xpt)])
-    } else {
-      list(x = 1, y = y[which(x == 1)])
-    }
-    
     #material consumption per product by week of material 1. Eventually I'll
     #make this a file upload
     cons1_per_prod <- data.frame(prod_1 = rep(12,52),
@@ -147,10 +137,7 @@ df_text <- data.frame(receive_text, receive_x, receive_y,
 
 #graphic for material 1
 p1 <- plot_ly(df, x=~week, y=~stock1, mode = 'lines',type = 'scatter',
-              line = list(color = 'grey', width = 2, source = 'trajectory')) %>%
-              config(editable = TRUE) %>%
-              event_register('plotly_relayout')
-
+              line = list(color = 'grey', width = 2))
 p1 <- p1 %>% add_ribbons(ymin = ~x_axis, 
                          ymax = ~stock1_pos,
                          line = list(color = 'black', width = 0),
