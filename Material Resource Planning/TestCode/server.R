@@ -1,12 +1,13 @@
 library(tidyverse)
 library(shiny)
+library(shinydashboard)
 library(plotly)
 library(dplyr)
 
-#later, I'll need to import the following 2 datasets
-
+#Colors----
 faintRed <- 'rgba(255,0,0,.5)'
 faintGreen <- 'rgba(0,255,0,.5)'
+
 cons1_per_prod <- data.frame(prod_1 = rep(12,52))
 
 server <- function(input,output,session){
@@ -116,7 +117,6 @@ server <- function(input,output,session){
                            fillcolor = faintRed)
   #add vertical lines and format layout
   p1 <- p1 %>% layout(showlegend = FALSE,
-                      title = 'Material 1 Stock',
                       yaxis = list(title = ''),
                       xaxis = list(title = 'Week'))
   p1 <- p1 %>% layout(shapes = vline_list())
