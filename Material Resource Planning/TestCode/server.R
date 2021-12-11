@@ -12,7 +12,18 @@ cons1_per_prod <- data.frame(prod_1 = rep(12,52))
 
 server <- function(input,output,session){
 
-    
+  #have "product 1 start" week box not show up if 'include prod 1' is unchecked
+  observeEvent(input$include_prod1,{
+    toggle("prod1_start")
+  },
+  ignoreInit = TRUE)
+  
+  #have 'material 1, order 1' not appear when 'include Order 1' is unchecked
+  observeEvent(input$include_order1,{
+    toggle("mat1_1")
+  },
+  ignoreInit = TRUE)
+  
   order_1 <- reactive(c('mat_1' = ifelse(input$include_order1,input$mat1_1,0),
               'week_num' = 10))
   
