@@ -8,24 +8,67 @@ library(dplyr)
 faintRed <- 'rgba(255,0,0,.5)'
 faintGreen <- 'rgba(0,255,0,.5)'
 
-cons1_per_prod <- data.frame(prod_1 = rep(12,52))
+#material consumption per product by week of material 1. Eventually I'll
+#make this a file upload
+cons1_per_prod <- data.frame(prod_1 = rep(12,52),
+                             prod_2 = rep(c(12,9),26),
+                             prod_3 = rep(28,52))
+
+#material consumption per product by week of material 2
+cons2_per_prod <- data.frame(prod_1 = rep(0,52),
+                             prod_2 = rep(c(4,3),26),
+                             prod_3 = rep(35,52))
 
 server <- function(input,output,session){
 
+  #Toggle products----
   #have "product 1 start" week box not show up if 'include prod 1' is unchecked
   observeEvent(input$include_prod1,{
     toggle("prod1_start")
   },
   ignoreInit = TRUE)
   
+  observeEvent(input$include_prod2,{
+    toggle("prod2_start")
+  },
+  ignoreInit = TRUE)
+  
+  observeEvent(input$include_prod3,{
+    toggle("prod3_start")
+  },
+  ignoreInit = TRUE)
+  
+  #Toggle order inclusion----
   #have 'material 1, order 1' not appear when 'include Order 1' is unchecked
   observeEvent(input$include_order1,{
     toggle("mat1_1")
+    toggle("mat2_1")
+  },
+  ignoreInit = TRUE)
+  
+  observeEvent(input$include_order2,{
+    toggle("mat1_2")
+    toggle("mat2_2")
+  },
+  ignoreInit = TRUE)
+  
+  observeEvent(input$include_order3,{
+    toggle("mat1_3")
+    toggle("mat2_3")
   },
   ignoreInit = TRUE)
   
   order_1 <- reactive(c('mat_1' = ifelse(input$include_order1,input$mat1_1,0),
-              'week_num' = 10))
+               'mat_2' = ifelse(input$include_order1,input$mat2_1,0),
+               'week_num' = 10))
+  order_2 <- reactive(c('mat_1' = ifelse(input$include_order2,input$mat1_2,0),
+               'mat_2' = ifelse(input$include_order2,input$mat2_2,0),
+               'week_num' = 24 ))
+  order_3 <- reactive(c('mat_1' = ifelse(input$include_order3,input$mat1_3,0),
+               'mat_2' = ifelse(input$include_order3,input$mat2_3,0),
+               'week_num' = 34))
+  
+  orders <- reactive(list(order_1(),order_2(),order_3()))
   
   lead_time <- reactive(input$lead_time)
   
@@ -53,7 +96,7 @@ server <- function(input,output,session){
     stock <- c(start_stock-consumption()[1], rep(0,51))
     for (i in 2:length(stock)){
       stock[i] <- stock[i-1]-consumption()[i]
-      for (order in list(order_1())){
+      for (order in orders()){
         if (order['week_num'] == i){
           stock[i] <- stock[i] + order[material] #where material <- 'mat_1' for example
         }
@@ -89,18 +132,23 @@ server <- function(input,output,session){
     )
   }
   
-  #create list for shapes parameter in plotly layout
-  include_order1 <- reactive(input$include_order1)
+  #Make vertical lines----
+  include_orders <- reactive(list(input$include_order1,
+                                  input$include_order2,
+                                  input$include_order3))
   
-  make_vline_list <- function(include_order1,order_1,lead_time){
-  vline_list <- list()
-  if(include_order1){
-    vline_list <- append(vline_list,list(vline(order_1['week_num']),
-                                   vline(order_1['week_num'] - lead_time, color = 'red')))
-  }
-  }
+  make_vline_list <- function(include_orders,order,lead_time){
+    vline_list <- list()
+      for (i in 1:length(include_orders)){
+        if(include_orders[[i]]){
+          vline_list <- append(vline_list,list(vline(order[[i]]['week_num']),
+                                         vline(order[[i]]['week_num'] - lead_time, color = 'red')))
+        }
+      }
+    return(vline_list)
+    }
   
-  vline_list <- reactive(make_vline_list(include_order1(),order_1(),lead_time()))
+  vline_list <- reactive(make_vline_list(include_orders(),orders(),lead_time()))
   
   #create df's for text labels on vertical lines
   receive_text <- c('Receive\norder 1')
