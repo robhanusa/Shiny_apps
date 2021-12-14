@@ -117,7 +117,8 @@ server <- function(input,output,session){
   #graphic for material 1
   output$p1 <- renderPlotly({
    p1 <- plot_ly(df2(), x=~week_num.., y=~stock1.., mode = 'lines',type = 'scatter',
-                 line = list(color = 'grey', width = 2))
+                 line = list(color = 'grey', width = 2),
+                 hovertemplate = paste(paste0('<extra></extra>Stock: %{y}\nWeek: %{x}')))
   p1 <- p1 %>% add_ribbons(ymin = ~x_axis..,
                            ymax = ~stock1_pos,
                            line = list(color = 'black', width = 0),

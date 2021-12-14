@@ -16,6 +16,7 @@ ui <- dashboardPage(
                       value = 200, step = 1)),
             ),
    fluidRow(
+     #useShinyjs() is needed to allow us to toggle in observeEvent in server side
      useShinyjs(),
      column(6,
       checkboxInput(inputId = 'include_prod1', 'Include Product 1?',
