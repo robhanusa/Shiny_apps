@@ -151,16 +151,52 @@ server <- function(input,output,session){
   vline_list <- reactive(make_vline_list(include_orders(),orders(),lead_time()))
   
   #create df's for text labels on vertical lines
-  receive_text <- c('Receive\norder 1')
-  receive_x <- reactive(c(order_1()['week_num'] + 2))
-  receive_y <- reactive(c(max(stock1())))
-
-  place_text <- c('Place\norder 1')
-  place_x <- reactive(c(order_1()['week_num'] - lead_time() + 2))
-  place_y <- reactive(c(max(stock1())-100))
-
-  df_text <- reactive(data.frame(receive_text, receive_x(), receive_y(),
-                        place_text, place_x(), place_y()))
+  make_labels <- function (n) {
+    receive_text <- c(paste0('Receive\norder ',n))
+    receive_x <- reactive(c(orders()[[n]]['week_num'] + 2))
+    receive_y <- reactive(c(max(stock1())))
+  
+    place_text <- c(paste0('Place\norder ',n))
+    place_x <- reactive(c(orders()[[n]]['week_num'] - lead_time() + 2))
+    place_y <- reactive(c(max(stock1())-100))
+  
+    return(reactive(data.frame(receive_text, receive_x(), receive_y(),
+                        place_text, place_x(), place_y())))
+  }
+  
+  df_text <- make_labels(1)
+  
+  #want to figure out how to add rows to df_text for the other line labels
+  observe(print(df_text()))
+  
+  # #create df's for text labels on vertical lines
+  # make_text_labels <- function() {
+  #   for (i in 1:length(orders())){
+  #     if (i == 1){
+  #       receive_text <- c('Receive\norder ${i}')
+  #       receive_x <- reactive(c(order()[i]['week_num'] + 2))
+  #       receive_y <- reactive(c(max(stock1())))
+  #       
+  #       place_text <- c('Place\norder ${i}')
+  #       place_x <- reactive(c(order()[i]['week_num'] - lead_time() + 2))
+  #       place_y <- reactive(c(max(stock1())-100))
+  #     } else {
+  #       append(receive_text, c('Receive\norder ${i}'))
+  #       append(receive_x, reactive(c(order()[i]['week_num'] + 2)))
+  #       append(receive_y, reactive(c(max(stock1()))))
+  #       
+  #       append(place_text, c('Place\norder ${i}'))
+  #       append(place_x, reactive(c(order()[i]['week_num'] - lead_time() + 2)))
+  #       append(place_y, reactive(c(max(stock1())-100)))
+  #       
+  #     }
+  #   }
+  #   observe(print(receive_x()))
+  #   return(data.frame(receive_text, receive_x(), receive_y(),
+  #                     place_text, place_x(), place_y()))
+  # }
+  # 
+  # df_text <- reactive(make_text_labels())
   
   #graphic for material 1
   output$p1 <- renderPlotly({
