@@ -164,10 +164,34 @@ server <- function(input,output,session){
                         place_text, place_x(), place_y())))
   }
   
-  df_text <- make_labels(1)
+  make_df_text <- function () {
+
+    if (input$include_order1) {
+      df_text <- make_labels(1)
+     } #else {
+    #   #if no order1 input, create data frame but make text blank
+    #   df_text <- make_labels(1)
+    #   df_text()[0,"receive_text"] <- ''
+    #}
+    if(!input$include_order2 & !input$include_order2){
+      return(df_text())
+      } else {
+        if (input$include_order2) {
+          df_text2 <- rbind(df_text(),make_labels(2)())
+        }
+        if (input$include_order3) {
+          df_text3 <- rbind(df_text2,make_labels(3)())
+          return(df_text3)
+        } else {
+          return(df_text2)
+        }
+      }
+  }
+  
+  df_text <- reactive(make_df_text())
   
   #want to figure out how to add rows to df_text for the other line labels
-  observe(print(df_text()))
+
   
   # #create df's for text labels on vertical lines
   # make_text_labels <- function() {
@@ -228,3 +252,5 @@ server <- function(input,output,session){
   return(p1)
 })
 }
+
+#remove option to not include order 1. I can't get the error handling to work
