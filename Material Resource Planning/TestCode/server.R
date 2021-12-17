@@ -164,64 +164,27 @@ server <- function(input,output,session){
                         place_text, place_x(), place_y())))
   }
   
-  make_df_text <- function () {
-
-    if (input$include_order1) {
-      df_text <- make_labels(1)
-     } #else {
-    #   #if no order1 input, create data frame but make text blank
-    #   df_text <- make_labels(1)
-    #   df_text()[0,"receive_text"] <- ''
-    #}
-    if(!input$include_order2 & !input$include_order2){
-      return(df_text())
-      } else {
-        if (input$include_order2) {
-          df_text2 <- rbind(df_text(),make_labels(2)())
-        }
-        if (input$include_order3) {
-          df_text3 <- rbind(df_text2,make_labels(3)())
-          return(df_text3)
-        } else {
-          return(df_text2)
-        }
+  make_df_text <- function (include_orders){
+    text_list <- list()
+    for (i in 1:3){ #length(include_orders)
+      #observe(print(paste0('first i:',i)))
+      if(include_orders()[[i]]){
+        #observe(print(paste0('2nd i:',i)))
+        if(length(text_list) == 0) {
+          #observe(print(paste0('3rd i:',i)))
+          text_list <- data.frame(c(make_labels(i)()))
+          observe(print(text_list))
+          } else {
+            text_list <- rbind(text_list,data.frame(c(make_labels(i)())))
+          }
       }
+    }
+    observe(print(text_list))
+    return(text_list)
   }
   
-  df_text <- reactive(make_df_text())
-  
-  #want to figure out how to add rows to df_text for the other line labels
+  df_text <- reactive(make_df_text(include_orders()))
 
-  
-  # #create df's for text labels on vertical lines
-  # make_text_labels <- function() {
-  #   for (i in 1:length(orders())){
-  #     if (i == 1){
-  #       receive_text <- c('Receive\norder ${i}')
-  #       receive_x <- reactive(c(order()[i]['week_num'] + 2))
-  #       receive_y <- reactive(c(max(stock1())))
-  #       
-  #       place_text <- c('Place\norder ${i}')
-  #       place_x <- reactive(c(order()[i]['week_num'] - lead_time() + 2))
-  #       place_y <- reactive(c(max(stock1())-100))
-  #     } else {
-  #       append(receive_text, c('Receive\norder ${i}'))
-  #       append(receive_x, reactive(c(order()[i]['week_num'] + 2)))
-  #       append(receive_y, reactive(c(max(stock1()))))
-  #       
-  #       append(place_text, c('Place\norder ${i}'))
-  #       append(place_x, reactive(c(order()[i]['week_num'] - lead_time() + 2)))
-  #       append(place_y, reactive(c(max(stock1())-100)))
-  #       
-  #     }
-  #   }
-  #   observe(print(receive_x()))
-  #   return(data.frame(receive_text, receive_x(), receive_y(),
-  #                     place_text, place_x(), place_y()))
-  # }
-  # 
-  # df_text <- reactive(make_text_labels())
-  
   #graphic for material 1
   output$p1 <- renderPlotly({
    p1 <- plot_ly(df2(), x=~week_num.., y=~stock1.., mode = 'lines',type = 'scatter',
@@ -241,16 +204,16 @@ server <- function(input,output,session){
                       xaxis = list(title = 'Week'))
   p1 <- p1 %>% layout(shapes = vline_list())
   #add text labels on 'receive' vertical lines
-  p1 <- p1 %>% add_trace(data = df_text(), x = ~receive_x.., y = ~receive_y..,
-                         type = 'scatter', mode = 'text', text = ~receive_text,
-                         line = NULL)
-  #add text labels on 'place' vertical lines
-  p1 <- p1 %>% add_trace(data = df_text(), x = ~place_x.., y = ~place_y..,
-                         type = 'scatter', mode = 'text', text = ~place_text,
-                         line = NULL)
+  if (length(df_text()) > 0 ) {
 
+    p1 <- p1 %>% add_trace(data = df_text(), x = ~receive_x.., y = ~receive_y..,
+                           type = 'scatter', mode = 'text', text = ~receive_text,
+                           line = NULL)
+    #add text labels on 'place' vertical lines
+    p1 <- p1 %>% add_trace(data = df_text(), x = ~place_x.., y = ~place_y..,
+                           type = 'scatter', mode = 'text', text = ~place_text,
+                           line = NULL)
+  }
   return(p1)
 })
 }
-
-#remove option to not include order 1. I can't get the error handling to work
