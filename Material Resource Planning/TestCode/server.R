@@ -73,22 +73,29 @@ server <- function(input,output,session){
   lead_time <- reactive(input$lead_time)
   
   #allow toggle of all products, and to choose start week
-  include_prod1 <- reactive(input$include_prod1)
-  prod1_start <- reactive(input$prod1_start)
+  include_prods <- reactive(c(input$include_prod1,
+                             input$include_prod2,
+                             input$include_prod3))
+  prod_starts <- reactive(c(input$prod1_start,
+                            input$prod2_start,
+                            input$prod3_start))
   
   #function to calculate weekly consumption. I can probably do this better with
   #lapply than using the for loop- Revisit
   calc_consumption <- function(cons_per_prod){
+    cols <- colnames(cons_per_prod)
     cons_tot <- rep(0,52)
     for (i in 1:length(cons_tot)){
-      if(include_prod1() && i >= prod1_start()){
-        cons_tot[i] <- cons_per_prod[i,"prod_1"]
+      for (j in 1:length(include_prods())) {
+        if(include_prods()[j] && i >= prod_starts()[j]){
+          cons_tot[i] <- cons_tot[i] + cons_per_prod[i,cols[j]]
+        }
       }
     }
     return(reactive(cons_tot))
   }
   
-  cons1_tot <- reactive(calc_consumption(cons1_per_prod))
+  cons_tot <- reactive(calc_consumption(cons1_per_prod))
   
   #calculate weekly stock of each material
   
@@ -105,7 +112,7 @@ server <- function(input,output,session){
      return(stock)
   }
   
-  stock1 <- reactive(calc_stock(input$mat1_start,cons1_tot(),'mat_1'))
+  stock1 <- reactive(calc_stock(input$mat1_start,cons_tot(),'mat_1'))
 
   week_num <- reactive( seq(1,length(stock1())))
   x_axis <- reactive(rep(0,length(stock1())))
@@ -124,7 +131,7 @@ server <- function(input,output,session){
     list(
       type = "line",
       y0 = 0,
-      y1 = 1,
+      y1 = 0.9,
       yref = "paper",
       x0 = x,
       x1 = x,
@@ -150,40 +157,38 @@ server <- function(input,output,session){
   
   vline_list <- reactive(make_vline_list(include_orders(),orders(),lead_time()))
   
-  #create df's for text labels on vertical lines
-  make_labels <- function (n) {
+  #make text for orders----
+  make_labels <- function (n, lead_time) {
     receive_text <- c(paste0('Receive\norder ',n))
-    receive_x <- reactive(c(orders()[[n]]['week_num'] + 2))
+    receive_x <- reactive(c(orders()[[n]]['week_num']))
     receive_y <- reactive(c(max(stock1())))
-  
-    place_text <- c(paste0('Place\norder ',n))
-    place_x <- reactive(c(orders()[[n]]['week_num'] - lead_time() + 2))
-    place_y <- reactive(c(max(stock1())-100))
-  
+    
+    #conditional below is needed to make sure graph reacts when lead_time is changed
+    if(lead_time){
+      place_text <- c(paste0('Place\norder ',n))
+      place_x <- reactive(c(orders()[[n]]['week_num'] - lead_time))
+      place_y <- reactive(c(max(stock1())))
+    }
     return(reactive(data.frame(receive_text, receive_x(), receive_y(),
                         place_text, place_x(), place_y())))
   }
   
-  make_df_text <- function (include_orders){
+  make_df_text <- function (include_orders, lead_time){
     text_list <- list()
-    for (i in 1:3){ #length(include_orders)
-      #observe(print(paste0('first i:',i)))
+    for (i in 1:3){
       if(include_orders()[[i]]){
-        #observe(print(paste0('2nd i:',i)))
         if(length(text_list) == 0) {
-          #observe(print(paste0('3rd i:',i)))
-          text_list <- data.frame(c(make_labels(i)()))
-          observe(print(text_list))
+          text_list <- data.frame(c(make_labels(i,lead_time)()))
           } else {
-            text_list <- rbind(text_list,data.frame(c(make_labels(i)())))
+            text_list <- rbind(text_list,data.frame(c(make_labels(i,lead_time)())))
           }
       }
     }
-    observe(print(text_list))
     return(text_list)
   }
   
-  df_text <- reactive(make_df_text(include_orders()))
+  df_text <- reactive(make_df_text(include_orders(),lead_time()))
+  observe(print(df_text))
 
   #graphic for material 1
   output$p1 <- renderPlotly({
