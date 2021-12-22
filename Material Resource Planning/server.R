@@ -19,6 +19,7 @@ cons2_per_prod <- data.frame(prod_1 = rep(0,52),
                              prod_2 = rep(c(4,3),26),
                              prod_3 = rep(35,52))
 
+
 server <- function(input,output,session){
 
   #Toggle products----
@@ -43,20 +44,39 @@ server <- function(input,output,session){
   observeEvent(input$include_order1,{
     toggle("mat1_1")
     toggle("mat2_1")
+    toggle('order1_arrival')
   },
   ignoreInit = TRUE)
   
   observeEvent(input$include_order2,{
     toggle("mat1_2")
     toggle("mat2_2")
+    toggle('order2_arrival')
   },
   ignoreInit = TRUE)
   
   observeEvent(input$include_order3,{
     toggle("mat1_3")
     toggle("mat2_3")
+    toggle('order3_arrival')
   },
   ignoreInit = TRUE)
+  
+  #convert consumption into days ----
+  #make a 'begin date' from which the x-axis will begin counting. if 'place order 1' 
+  #exists, this is that that date. otherwise, today/beginning of year
+  if(input$order1_arrival) {
+    begin_date <- reactive(input$order1_arrival- input$lead_time*7)
+  } else {
+    begin_date <- '2022-01-01'
+  }
+    
+  #turn the weekly forcast above into days. map dates to each day in the vector
+    
+  for (day in begin_date:(begin_date+7*52)){
+    cons1_per_prod[day]
+  } 
+  
   
   #Orders list----
   

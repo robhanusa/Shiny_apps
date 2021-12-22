@@ -16,8 +16,6 @@ ui <- dashboardPage(
     width = 300,
     #Material starting stocks----
       fluidRow(
-        div(
-        style = 'padding-bottom: 0;',
          column(6,
              numericInput(inputId = 'mat1_start', 
                           div('Starting stock, Material 1'), 
@@ -25,7 +23,6 @@ ui <- dashboardPage(
          column(6,
                 numericInput(inputId = 'mat2_start', 'Starting stock, Material 2', 
                              value = 100, step = 1))
-                )
         ),
     #Product starting weeks----
    fluidRow(
@@ -36,7 +33,9 @@ ui <- dashboardPage(
                     value = TRUE, )),
     column(6,
       numericInput(inputId = 'prod1_start', 'Starting week', 
-                value = 12, step = 1))
+                value = 12, step = 1)),
+    column(6,
+      dateInput('prod1_startDate', 'Starting date'))
           ),
    fluidRow(
      useShinyjs(),
@@ -45,8 +44,10 @@ ui <- dashboardPage(
                           value = TRUE, )),
      column(6,
             numericInput(inputId = 'prod2_start', 'Starting week', 
-                         value = 25, step = 1))
-   ),
+                         value = 25, step = 1)),
+     column(6,
+            dateInput('prod2_startDate', 'Starting date'))
+    ),
    fluidRow(
      useShinyjs(),
      column(6,
@@ -54,7 +55,9 @@ ui <- dashboardPage(
                           value = TRUE, )),
      column(6,
             numericInput(inputId = 'prod3_start', 'Starting week', 
-                         value = 35, step = 1))
+                         value = 35, step = 1)),
+     column(6,
+            dateInput('prod3_startDate', 'Starting date'))
    ),
    numericInput(inputId = 'lead_time', 'Lead time, in weeks', 
                 value = 4, step = 1),
@@ -69,7 +72,10 @@ ui <- dashboardPage(
                          value = 25, step = 1)),
      column(12,
             numericInput(inputId = 'order1_arrival', 'Arrival week',
-                         value = 10, step = 1))),
+                         value = 10, step = 1)),
+     column(12,
+            dateInput('order1_arrivalDate', 'Arrival date'))
+     ),
    checkboxInput(inputId = 'include_order2', 'Include Order 2?',
                  value = TRUE),
    fluidRow(
@@ -81,7 +87,10 @@ ui <- dashboardPage(
                          value = 250, step = 1)),
      column(12,
             numericInput(inputId = 'order2_arrival', 'Arrival week',
-                         value = 25, step = 1))),
+                         value = 25, step = 1)),
+     column(12,
+            dateInput('order2_arrivalDate', 'Arrival date'))
+     ),
    checkboxInput(inputId = 'include_order3', 'Include Order 3?',
                  value = TRUE),
    fluidRow(
@@ -93,7 +102,9 @@ ui <- dashboardPage(
                          value = 250, step = 1)),
      column(12,
             numericInput(inputId = 'order3_arrival', 'Arrival week',
-                         value = 35, step = 1))
+                         value = 35, step = 1)),
+     column(12,
+            dateInput('order3_arrivalDate', 'Arrival date'))
      
      )
  ),
@@ -115,3 +126,5 @@ ui <- dashboardPage(
   ))
   
 )
+
+#for collapseable slidebar items: https://stackoverflow.com/questions/49852818/collapsible-menu-item-in-shiny-dashboard-sidebar
