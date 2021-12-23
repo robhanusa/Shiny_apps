@@ -10,14 +10,14 @@ faintGreen <- 'rgba(0,255,0,.5)'
 
 #material consumption per product by week of material 1. Eventually I'll
 #make this a file upload
-cons1_per_prod <- data.frame(prod_1 = rep(12,52),
-                             prod_2 = rep(c(12,9),26),
-                             prod_3 = rep(28,52))
+cons1_per_prod <- data.frame(prod_1 = rep(12,52*1.5),
+                             prod_2 = rep(c(12,9),26*1.5),
+                             prod_3 = rep(28,52*1.5))
 
 #material consumption per product by week of material 2
-cons2_per_prod <- data.frame(prod_1 = rep(0,52),
-                             prod_2 = rep(c(4,3),26),
-                             prod_3 = rep(35,52))
+cons2_per_prod <- data.frame(prod_1 = rep(0,52*1.5),
+                             prod_2 = rep(c(4,3),26*1.5),
+                             prod_3 = rep(35,52*1.5))
 
 
 server <- function(input,output,session){
@@ -65,18 +65,26 @@ server <- function(input,output,session){
   #convert consumption into days ----
   #make a 'begin date' from which the x-axis will begin counting. if 'place order 1' 
   #exists, this is that that date. otherwise, today/beginning of year
-  if(input$order1_arrival) {
-    begin_date <- reactive(input$order1_arrival- input$lead_time*7)
-  } else {
-    begin_date <- '2022-01-01'
+  make_begin_date <- function() {
+      if(validate(input$order1_arrival)) {
+      begin_date <- reactive(input$order1_arrival- input$lead_time*7)
+    } else {
+      begin_date <- '2022-01-01'
+    }
+    return(begin_date)
   }
+  
+  begin_date <- reactive(make_begin_date())
     
   #turn the weekly forcast above into days. map dates to each day in the vector
-    
-  for (day in begin_date:(begin_date+7*52)){
-    cons1_per_prod[day]
-  } 
+  make_consumption <- function() {
+    chart_length <- 7*(52*1.5) #year and a half
+    for (day in begin_date():(begin_date()+chart_length)){
+      cons1_per_prod[day]
+    } 
+  }
   
+  consumption <- reactive(make_consumption())
   
   #Orders list----
   
@@ -106,7 +114,7 @@ server <- function(input,output,session){
   #lapply than using the for loop- Revisit
   calc_consumption <- function(cons_per_prod){
     cols <- colnames(cons_per_prod)
-    cons_tot <- rep(0,52)
+    cons_tot <- rep(0,52*1.5)
     for (i in 1:length(cons_tot)){
       for (j in 1:length(include_prods())) {
         if(include_prods()[j] && i >= prod_starts()[j]){
