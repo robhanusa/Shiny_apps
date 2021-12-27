@@ -64,7 +64,7 @@ server <- function(input,output,session){
   
   begin_date <- reactive(input$order1_arrivalDate - input$lead_time*7-30)
     
-  #turn the weekly forecast above into days. map dates to each day in the vector
+  #Convert weekly forecast to daily consumption ----
   make_cons_in_days <- function(cons_per_prod) {
     cons_list <- list(NULL,NULL,NULL)
     cols <- colnames(cons_per_prod)
@@ -85,7 +85,6 @@ server <- function(input,output,session){
   cons2_daily <- make_cons_in_days(cons2_per_prod)
 
   #Orders list----
-  
   order_1 <- reactive(c('mat_1' = ifelse(input$include_order1,input$mat1_1,0),
                'mat_2' = ifelse(input$include_order1,input$mat2_1,0),
                'arrival_date' = input$order1_arrivalDate))
@@ -140,7 +139,6 @@ server <- function(input,output,session){
      return(stock)
   }
 
-  
   stock1 <- reactive(calc_stock(input$mat1_start,cons_tot1(),'mat_1'))
   stock2 <- reactive(calc_stock(input$mat2_start,cons_tot2(),'mat_2'))
 
@@ -159,7 +157,6 @@ server <- function(input,output,session){
   df3_mat1 <- reactive(filter(df2_mat1(), x_date.. >= as.Date(input$date_range[1]) &
                                x_date.. <= as.Date(input$date_range[2])))
   
-  
   #dataframe for material 2----
   df_mat2 <- reactive(data.frame(x_date(),stock2(),x_axis()))
   #create rows where only positive or negative are present, to make the red/green ribbons
@@ -167,7 +164,6 @@ server <- function(input,output,session){
   df2_mat2 <- reactive(mutate(df1_mat2(),stock_neg = ifelse(stock2() < 0, stock2(), 0)))
   df3_mat2 <- reactive(filter(df2_mat2(), x_date.. >= as.Date(input$date_range[1]) &
                                 x_date.. <= as.Date(input$date_range[2])))
-  
   
   #Make vertical lines----
   vline <- function(x = 0, color = "orange") {
@@ -234,9 +230,6 @@ server <- function(input,output,session){
   
   df_text_mat1 <- reactive(make_df_text(include_orders(),lead_time(),stock1()))
   df_text_mat2 <- reactive(make_df_text(include_orders(),lead_time(),stock2()))
-
-
-  
   
   #format graphs----
   #function with all of the formatting that is common between graphs
