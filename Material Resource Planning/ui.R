@@ -32,10 +32,7 @@ ui <- dashboardPage(
       checkboxInput(inputId = 'include_prod1', 'Include Product 1?',
                     value = TRUE, )),
     column(6,
-      numericInput(inputId = 'prod1_start', 'Starting week', 
-                value = 12, step = 1)),
-    column(6,
-      dateInput('prod1_startDate', 'Starting date'))
+      dateInput('prod1_startDate', 'Starting date', value = Sys.Date()+60))
           ),
    fluidRow(
      useShinyjs(),
@@ -43,10 +40,7 @@ ui <- dashboardPage(
             checkboxInput(inputId = 'include_prod2', 'Include Product 2?',
                           value = TRUE, )),
      column(6,
-            numericInput(inputId = 'prod2_start', 'Starting week', 
-                         value = 25, step = 1)),
-     column(6,
-            dateInput('prod2_startDate', 'Starting date'))
+            dateInput('prod2_startDate', 'Starting date', value = Sys.Date()+120))
     ),
    fluidRow(
      useShinyjs(),
@@ -54,10 +48,7 @@ ui <- dashboardPage(
             checkboxInput(inputId = 'include_prod3', 'Include Product 3?',
                           value = TRUE, )),
      column(6,
-            numericInput(inputId = 'prod3_start', 'Starting week', 
-                         value = 35, step = 1)),
-     column(6,
-            dateInput('prod3_startDate', 'Starting date'))
+            dateInput('prod3_startDate', 'Starting date',value = Sys.Date()+360))
    ),
    numericInput(inputId = 'lead_time', 'Lead time, in weeks', 
                 value = 4, step = 1),
@@ -66,15 +57,12 @@ ui <- dashboardPage(
    fluidRow(
      column(6,
             numericInput(inputId = 'mat1_1', 'Material 1, Order 1',
-                         value = 25, step = 1)),
+                         value = 200, step = 1)),
      column(6,
             numericInput(inputId = 'mat2_1', 'Material 2, Order 1',
-                         value = 25, step = 1)),
+                         value = 200, step = 1)),
      column(12,
-            numericInput(inputId = 'order1_arrival', 'Arrival week',
-                         value = 10, step = 1)),
-     column(12,
-            dateInput('order1_arrivalDate', 'Arrival date'))
+            dateInput('order1_arrivalDate', 'Arrival date', value = Sys.Date()+60))
      ),
    checkboxInput(inputId = 'include_order2', 'Include Order 2?',
                  value = TRUE),
@@ -86,10 +74,7 @@ ui <- dashboardPage(
             numericInput(inputId = 'mat2_2', 'Material 2, Order 2',
                          value = 250, step = 1)),
      column(12,
-            numericInput(inputId = 'order2_arrival', 'Arrival week',
-                         value = 25, step = 1)),
-     column(12,
-            dateInput('order2_arrivalDate', 'Arrival date'))
+            dateInput('order2_arrivalDate', 'Arrival date', value = Sys.Date()+120))
      ),
    checkboxInput(inputId = 'include_order3', 'Include Order 3?',
                  value = TRUE),
@@ -101,10 +86,7 @@ ui <- dashboardPage(
             numericInput(inputId = 'mat2_3', 'Material 2, Order 3',
                          value = 250, step = 1)),
      column(12,
-            numericInput(inputId = 'order3_arrival', 'Arrival week',
-                         value = 35, step = 1)),
-     column(12,
-            dateInput('order3_arrivalDate', 'Arrival date'))
+            dateInput('order3_arrivalDate', 'Arrival date', value = Sys.Date()+330))
      
      )
  ),

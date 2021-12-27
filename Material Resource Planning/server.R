@@ -65,38 +65,51 @@ server <- function(input,output,session){
   #convert consumption into days ----
   #make a 'begin date' from which the x-axis will begin counting. if 'place order 1' 
   #exists, this is that that date. otherwise, today/beginning of year
-  make_begin_date <- function() {
-      if(validate(input$order1_arrival)) {
-      begin_date <- reactive(input$order1_arrival- input$lead_time*7)
-    } else {
-      begin_date <- '2022-01-01'
-    }
-    return(begin_date)
-  }
+  # make_begin_date <- function() {
+  #     if(validate(input$order1_arrivalDate)) {
+  #     begin_date <- reactive(input$order1_arrivalDate - input$lead_time*7)
+  #   } else {
+  #     begin_date <- '2021-01-01'
+  #   }
+  #   return(begin_date)
+  # }
+  # 
+  # observe(print(input$order1_arrivalDate))
+  # begin_date <- reactive(make_begin_date())
   
-  begin_date <- reactive(make_begin_date())
+  begin_date <- reactive(input$order1_arrivalDate - input$lead_time*7)
     
-  #turn the weekly forcast above into days. map dates to each day in the vector
-  make_consumption <- function() {
-    chart_length <- 7*(52*1.5) #year and a half
-    for (day in begin_date():(begin_date()+chart_length)){
-      cons1_per_prod[day]
-    } 
+  #turn the weekly forecast above into days. map dates to each day in the vector
+  make_cons_in_days <- function(cons_per_prod) {
+    cons_list <- list(NULL,NULL,NULL)
+    cols <- colnames(cons_per_prod)
+    for (prod in 1:length(cons_per_prod)) {
+      daily_cons <- rep(0,7*nrow(cons_per_prod[prod]))
+      for (week in 1:nrow(cons_per_prod[prod])){
+        for (day in 1:7) {
+          daily_cons[(week-1)*7 + day] <- cons_per_prod[week,cols[prod]]/7
+        }
+      }
+      cons_list[[prod]] <- as.vector(daily_cons)
+    }
+    names(cons_list) <- cols
+    return(cons_list)
   }
   
-  consumption <- reactive(make_consumption())
-  
+  cons1_daily <- make_cons_in_days(cons1_per_prod)
+  cons2_daily <- make_cons_in_days(cons2_per_prod)
+
   #Orders list----
   
   order_1 <- reactive(c('mat_1' = ifelse(input$include_order1,input$mat1_1,0),
                'mat_2' = ifelse(input$include_order1,input$mat2_1,0),
-               'week_num' = input$order1_arrival))
+               'arrival_date' = input$order1_arrivalDate))
   order_2 <- reactive(c('mat_1' = ifelse(input$include_order2,input$mat1_2,0),
                'mat_2' = ifelse(input$include_order2,input$mat2_2,0),
-               'week_num' = input$order2_arrival ))
+               'arrival_date' = input$order2_arrivalDate))
   order_3 <- reactive(c('mat_1' = ifelse(input$include_order3,input$mat1_3,0),
                'mat_2' = ifelse(input$include_order3,input$mat2_3,0),
-               'week_num' = input$order3_arrival))
+               'arrival_date' = input$order3_arrivalDate))
   
   orders <- reactive(list(order_1(),order_2(),order_3()))
   
@@ -106,47 +119,47 @@ server <- function(input,output,session){
   include_prods <- reactive(c(input$include_prod1,
                              input$include_prod2,
                              input$include_prod3))
-  prod_starts <- reactive(c(input$prod1_start,
-                            input$prod2_start,
-                            input$prod3_start))
+  prod_starts <- reactive(c(input$prod1_startDate,
+                            input$prod2_startDate,
+                            input$prod3_startDate))
   
   #function to calculate weekly consumption. I can probably do this better with
   #lapply than using the for loop- Revisit
   calc_consumption <- function(cons_per_prod){
-    cols <- colnames(cons_per_prod)
-    cons_tot <- rep(0,52*1.5)
+    cols <- names(cons_per_prod) 
+    cons_tot <- rep(0,52*7*1.5)
     for (i in 1:length(cons_tot)){
       for (j in 1:length(include_prods())) {
-        if(include_prods()[j] && i >= prod_starts()[j]){
-          cons_tot[i] <- cons_tot[i] + cons_per_prod[i,cols[j]]
+        if(include_prods()[j] && (begin_date() + i) >= as.Date(prod_starts()[j])){
+          cons_tot[i] <- cons_tot[i] + cons_per_prod[[cols[j]]][i]
         }
       }
     }
     return(reactive(cons_tot))
   }
   
-  cons_tot1 <- reactive(calc_consumption(cons1_per_prod))
-  cons_tot2 <- reactive(calc_consumption(cons2_per_prod))
+  cons_tot1 <- reactive(calc_consumption(cons1_daily)) #previously cons1_per_prod
+  cons_tot2 <- reactive(calc_consumption(cons2_daily)) #previously cons2_per_prod
   
-  #calculate weekly stock of each material
-  
+  #calculate daily stock of each material
   calc_stock <- function(start_stock, consumption, material){
-    stock <- c(start_stock-consumption()[1], rep(0,51))
+    stock <- c(start_stock-consumption()[1], rep(0,52*7*1.5-1))
     for (i in 2:length(stock)){
       stock[i] <- stock[i-1]-consumption()[i]
       for (order in orders()){
-        if (order['week_num'] == i){
+        if (as.Date(order['arrival_date'],origin = "1970-01-01") == begin_date() + i){
           stock[i] <- stock[i] + order[material] #where material <- 'mat_1' for example
         }
       }
     }
      return(stock)
   }
+
   
   stock1 <- reactive(calc_stock(input$mat1_start,cons_tot1(),'mat_1'))
   stock2 <- reactive(calc_stock(input$mat2_start,cons_tot2(),'mat_2'))
 
-  week_num <- reactive( seq(1,length(stock1())))
+  week_num <- reactive(seq.Date(from = begin_date(), to = begin_date() + length(stock1())-1,by = 1)) #
   x_axis <- reactive(rep(0,length(stock1())))
   
 
@@ -186,12 +199,12 @@ server <- function(input,output,session){
     vline_list <- list()
       for (i in 1:length(include_orders)){
         if(include_orders[[i]]){
-          vline_list <- append(vline_list,list(vline(order[[i]]['week_num']),
-                                         vline(order[[i]]['week_num'] - lead_time, color = 'red')))
+          vline_list <- append(vline_list,list(vline(as.Date(order[[i]]['arrival_date'],origin = "1970-01-01")),
+                                         vline(as.Date(order[[i]]['arrival_date'],origin = "1970-01-01") - lead_time*7, color = 'red')))
         }
       }
     return(vline_list)
-    }
+  }
   
   vline_list <- reactive(make_vline_list(include_orders(),orders(),lead_time()))
   
@@ -200,13 +213,13 @@ server <- function(input,output,session){
     #conditional is to make sure text position updates when orders() is changed
     if(!is.null(orders())) {
       receive_text <- c(paste0('Receive\norder ',n))
-      receive_x <- reactive(c(orders()[[n]]['week_num']))
+      receive_x <- reactive(c(as.Date(orders()[[n]]['arrival_date'],origin = "1970-01-01")))
       receive_y <- reactive(c(max(stock)))
       
       #conditional below is needed to make sure graph reacts when lead_time is changed
       if(lead_time){
         place_text <- c(paste0('Place\norder ',n))
-        place_x <- reactive(c(orders()[[n]]['week_num'] - lead_time))
+        place_x <- reactive(c(as.Date(orders()[[n]]['arrival_date'],origin = "1970-01-01") - lead_time*7))
         place_y <- reactive(c(max(stock)))
       }
     }
@@ -289,7 +302,7 @@ output$p2 <- renderPlotly({
                            type = 'scatter', mode = 'text', text = ~place_text,
                            line = NULL)
   }
-  
+
   return(p2)
 })
 }
