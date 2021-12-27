@@ -144,23 +144,30 @@ server <- function(input,output,session){
   stock1 <- reactive(calc_stock(input$mat1_start,cons_tot1(),'mat_1'))
   stock2 <- reactive(calc_stock(input$mat2_start,cons_tot2(),'mat_2'))
 
-  week_num <- reactive(seq.Date(from = begin_date(), to = begin_date() + length(stock1())-1,by = 1)) #
+  x_date <- reactive(seq.Date(from = begin_date(), to = begin_date() + length(stock1())-1,by = 1)) #
   x_axis <- reactive(rep(0,length(stock1())))
   
   #note tht the column names of the reactive elements are going to have '..' at the end
-  #ex 'week_num..' But the new columns I add (ex stock1_pos) don't have these dots
+  #ex 'x_date..' But the new columns I add (ex stock1_pos) don't have these dots
   #this is important when rendering the graph
   #dataframe for material 1----
-  df_mat1 <- reactive(data.frame(week_num(),stock1(),x_axis()))
+  df_mat1 <- reactive(data.frame(x_date(),stock1(),x_axis()))
   #create rows where only positive or negative are present, to make the red/green ribbons
   df1_mat1 <- reactive(mutate(df_mat1(),stock_pos = ifelse(stock1() > 0, stock1(), 0)))
   df2_mat1 <- reactive(mutate(df1_mat1(),stock_neg = ifelse(stock1() < 0, stock1(), 0)))
- 
+  #filter df by date
+  df3_mat1 <- reactive(filter(df2_mat1(), x_date.. >= as.Date(input$date_range[1]) &
+                               x_date.. <= as.Date(input$date_range[2])))
+  
+  
   #dataframe for material 2----
-  df_mat2 <- reactive(data.frame(week_num(),stock2(),x_axis()))
+  df_mat2 <- reactive(data.frame(x_date(),stock2(),x_axis()))
   #create rows where only positive or negative are present, to make the red/green ribbons
   df1_mat2 <- reactive(mutate(df_mat2(),stock_pos = ifelse(stock2() > 0, stock2(), 0)))
   df2_mat2 <- reactive(mutate(df1_mat2(),stock_neg = ifelse(stock2() < 0, stock2(), 0)))
+  df3_mat2 <- reactive(filter(df2_mat2(), x_date.. >= as.Date(input$date_range[1]) &
+                                x_date.. <= as.Date(input$date_range[2])))
+  
   
   #Make vertical lines----
   vline <- function(x = 0, color = "orange") {
@@ -198,13 +205,13 @@ server <- function(input,output,session){
     if(!is.null(orders())) {
       receive_text <- c(paste0('Receive\norder ',n))
       receive_x <- reactive(c(as.Date(orders()[[n]]['arrival_date'],origin = "1970-01-01")))
-      receive_y <- reactive(c(max(stock)))
+      receive_y <- reactive(c(max(stock)*1.1))
       
       #conditional below is needed to make sure graph reacts when lead_time is changed
       if(lead_time){
         place_text <- c(paste0('Place\norder ',n))
         place_x <- reactive(c(as.Date(orders()[[n]]['arrival_date'],origin = "1970-01-01") - lead_time*7))
-        place_y <- reactive(c(max(stock)))
+        place_y <- reactive(c(max(stock)*1.1))
       }
     }
     return(reactive(data.frame(receive_text, receive_x(), receive_y(),
@@ -228,6 +235,9 @@ server <- function(input,output,session){
   df_text_mat1 <- reactive(make_df_text(include_orders(),lead_time(),stock1()))
   df_text_mat2 <- reactive(make_df_text(include_orders(),lead_time(),stock2()))
 
+
+  
+  
   #format graphs----
   #function with all of the formatting that is common between graphs
   make_graph <- function (p){
@@ -254,7 +264,7 @@ server <- function(input,output,session){
 
 #Material 1 graph----
 output$p1 <- renderPlotly({
-  p1 <- plot_ly(df2_mat1(), x=~week_num.., y=~stock1.., mode = 'lines',type = 'scatter',
+  p1 <- plot_ly(df3_mat1(), x=~x_date.., y=~stock1.., mode = 'lines',type = 'scatter',
                 line = list(color = 'grey', width = 2),
                 hovertemplate = paste(paste0('<extra></extra>Stock: %{y}\nWeek: %{x}')))
 
@@ -275,7 +285,7 @@ output$p1 <- renderPlotly({
 
 #Material 2 graph----
 output$p2 <- renderPlotly({
-  p2 <- plot_ly(df2_mat2(), x=~week_num.., y=~stock2.., mode = 'lines',type = 'scatter',
+  p2 <- plot_ly(df3_mat2(), x=~x_date.., y=~stock2.., mode = 'lines',type = 'scatter',
               line = list(color = 'grey', width = 2),
               hovertemplate = paste(paste0('<extra></extra>Stock: %{y}\nDate: %{x}')))
   
