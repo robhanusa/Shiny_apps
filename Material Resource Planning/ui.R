@@ -9,11 +9,17 @@ ui <- dashboardPage(
   dashboardHeader(title = "Material Resource Planning",
                   titleWidth = 300),
   dashboardSidebar(
-    #import css styles sheet
-    tags$head(
-      tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")
-    ),
     width = 300,
+      fluidRow(
+        column(12,
+          dateRangeInput(
+            inputId = "date_range",
+            label = "Select Date Range:",
+            start = "2022-01-01",
+            end   = "2022-12-31"
+          )
+        )
+      ),
     #Material starting stocks----
       fluidRow(
          column(6,
@@ -35,7 +41,6 @@ ui <- dashboardPage(
       dateInput('prod1_startDate', 'Starting date', value = Sys.Date()+60))
           ),
    fluidRow(
-     useShinyjs(),
      column(6,
             checkboxInput(inputId = 'include_prod2', 'Include Product 2?',
                           value = TRUE, )),
@@ -43,7 +48,6 @@ ui <- dashboardPage(
             dateInput('prod2_startDate', 'Starting date', value = Sys.Date()+120))
     ),
    fluidRow(
-     useShinyjs(),
      column(6,
             checkboxInput(inputId = 'include_prod3', 'Include Product 3?',
                           value = TRUE, )),
@@ -93,20 +97,15 @@ ui <- dashboardPage(
     #Plots----
     dashboardBody(
       tabsetPanel(
-        #type = 'tabs',
-        #id = 'tab_selected',
         tabPanel(
           title = 'Material 1',
            plotlyOutput("p1")
-           #verbatimTextOutput("event")
+         # uiOutput("date_slider")
         ),
         tabPanel(
           title = 'Material 2',
           plotlyOutput("p2")
-          #verbatimTextOutput("event")
+        # uiOutput("date_slider")
         )
   ))
-  
 )
-
-#for collapseable slidebar items: https://stackoverflow.com/questions/49852818/collapsible-menu-item-in-shiny-dashboard-sidebar

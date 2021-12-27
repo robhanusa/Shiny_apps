@@ -25,17 +25,17 @@ server <- function(input,output,session){
   #Toggle products----
   #have "product 1 start" week box not show up if 'include prod 1' is unchecked
   observeEvent(input$include_prod1,{
-    toggle("prod1_start")
+    toggle("prod1_startDate")
   },
   ignoreInit = TRUE)
   
   observeEvent(input$include_prod2,{
-    toggle("prod2_start")
+    toggle("prod2_startDate")
   },
   ignoreInit = TRUE)
   
   observeEvent(input$include_prod3,{
-    toggle("prod3_start")
+    toggle("prod3_startDate")
   },
   ignoreInit = TRUE)
   
@@ -44,40 +44,25 @@ server <- function(input,output,session){
   observeEvent(input$include_order1,{
     toggle("mat1_1")
     toggle("mat2_1")
-    toggle('order1_arrival')
+    toggle('order1_arrivalDate')
   },
   ignoreInit = TRUE)
   
   observeEvent(input$include_order2,{
     toggle("mat1_2")
     toggle("mat2_2")
-    toggle('order2_arrival')
+    toggle('order2_arrivalDate')
   },
   ignoreInit = TRUE)
   
   observeEvent(input$include_order3,{
     toggle("mat1_3")
     toggle("mat2_3")
-    toggle('order3_arrival')
+    toggle('order3_arrivalDate')
   },
   ignoreInit = TRUE)
   
-  #convert consumption into days ----
-  #make a 'begin date' from which the x-axis will begin counting. if 'place order 1' 
-  #exists, this is that that date. otherwise, today/beginning of year
-  # make_begin_date <- function() {
-  #     if(validate(input$order1_arrivalDate)) {
-  #     begin_date <- reactive(input$order1_arrivalDate - input$lead_time*7)
-  #   } else {
-  #     begin_date <- '2021-01-01'
-  #   }
-  #   return(begin_date)
-  # }
-  # 
-  # observe(print(input$order1_arrivalDate))
-  # begin_date <- reactive(make_begin_date())
-  
-  begin_date <- reactive(input$order1_arrivalDate - input$lead_time*7)
+  begin_date <- reactive(input$order1_arrivalDate - input$lead_time*7-30)
     
   #turn the weekly forecast above into days. map dates to each day in the vector
   make_cons_in_days <- function(cons_per_prod) {
@@ -162,7 +147,6 @@ server <- function(input,output,session){
   week_num <- reactive(seq.Date(from = begin_date(), to = begin_date() + length(stock1())-1,by = 1)) #
   x_axis <- reactive(rep(0,length(stock1())))
   
-
   #note tht the column names of the reactive elements are going to have '..' at the end
   #ex 'week_num..' But the new columns I add (ex stock1_pos) don't have these dots
   #this is important when rendering the graph
@@ -257,13 +241,17 @@ server <- function(input,output,session){
                              fillcolor = faintRed)
     #add vertical lines and format layout
     p <- p %>% layout(showlegend = FALSE,
-                        yaxis = list(title = ''),
-                        xaxis = list(title = 'Week'))
+                        yaxis = list(title = ''
+                                     #range = c(1.1*max) #need to make a range with max's that work for both materials
+                                     ),
+                        xaxis = list(title = 'Date',
+                                     range = c(as.Date(input$date_range[1]),
+                                               as.Date(input$date_range[2]))))
     p <- p %>% layout(shapes = vline_list())
 
     return(p)
   }
-  
+
 #Material 1 graph----
 output$p1 <- renderPlotly({
   p1 <- plot_ly(df2_mat1(), x=~week_num.., y=~stock1.., mode = 'lines',type = 'scatter',
@@ -289,7 +277,7 @@ output$p1 <- renderPlotly({
 output$p2 <- renderPlotly({
   p2 <- plot_ly(df2_mat2(), x=~week_num.., y=~stock2.., mode = 'lines',type = 'scatter',
               line = list(color = 'grey', width = 2),
-              hovertemplate = paste(paste0('<extra></extra>Stock: %{y}\nWeek: %{x}')))
+              hovertemplate = paste(paste0('<extra></extra>Stock: %{y}\nDate: %{x}')))
   
   p2 <- make_graph(p2)
   
