@@ -1,7 +1,7 @@
 library(shiny)
 library(tidyverse)
 
-control_response <- function(kp,kd,ki_inverse,bias,delay) {
+control_response <- function(kp,td,ti_inverse,bias,delay) {
   
   derivative_smoothing = 5
   
@@ -22,11 +22,11 @@ control_response <- function(kp,kd,ki_inverse,bias,delay) {
       }
     }
     if (i <= 2*derivative_smoothing && i > 1) {
-      df[i,'pv'] <-  df[i,'pv'] + kp*(df[i,'error']+ki_inverse*df[i,'cum_error'])
+      df[i,'pv'] <-  df[i,'pv'] + kp*(df[i,'error']+ti_inverse*df[i,'cum_error'])
     } else if (i > 2*derivative_smoothing) {
       df[i,'pv'] <-  df[i,'pv'] + kp*(df[i,'error']+
-                                                 ki_inverse*df[i,'cum_error']+
-                                                 kd*(mean(df[i:(i-derivative_smoothing),'error'])-
+                                                 ti_inverse*df[i,'cum_error']+
+                                                 td*(mean(df[i:(i-derivative_smoothing),'error'])-
                                                        mean(df[(i-1-derivative_smoothing):(i-2*derivative_smoothing),'error']))/
                                                  (2*derivative_smoothing))
     }
@@ -36,7 +36,7 @@ control_response <- function(kp,kd,ki_inverse,bias,delay) {
 
 server <- function(input,output,session) {
   response <- reactive({
-    control_response(input$kp,input$kd,input$ki_inverse,input$bias,input$delay)
+    control_response(input$kp,input$td,input$ti_inverse,input$bias,input$delay)
   })
   output$p1 <- renderPlot({
     ggplot(data = response(),aes(x = c(1:nrow(response()))))+
