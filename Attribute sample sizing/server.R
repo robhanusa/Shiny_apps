@@ -46,5 +46,3 @@ server <- function(input,output,session) {
     return(p)
   })
 }
-
-#to improve hovertext: https://gist.github.com/matt-dray/8e5d03e32318da90ee53cd35d81871c0
