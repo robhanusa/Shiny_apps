@@ -9,29 +9,30 @@ ui <- fluidPage(
     failed or not. If less than 8 samples were used, leave the remaining boxes 
     at 0 cycles and indicate no failures"),
   fluidRow(
-    column(3,
-           wellPanel(
-             numericInput(inputId = 'samples_1', 'Sample 1 cycles:', value = 0),
-             checkboxInput("samples_failed_1", value = FALSE, label = "Check if failed"),
-             numericInput(inputId = 'samples_2', 'Sample 2 cycles:', value = 0),
-             checkboxInput("samples_failed_2", value = FALSE, label = "Check if failed"),
-             numericInput(inputId = 'samples_3', 'Sample 3 cycles:', value = 0),
-             checkboxInput("samples_failed_3", value = FALSE, label = "Check if failed"),
-             numericInput(inputId = 'samples_4', 'Sample 4 cycles:', value = 0),
-             checkboxInput("samples_failed_4", value = FALSE, label = "Check if failed"),
-             numericInput(inputId = 'samples_5', 'Sample 5 cycles:', value = 0),
-             checkboxInput("samples_failed_5", value = FALSE, label = "Check if failed"),
-             numericInput(inputId = 'samples_6', 'Sample 6 cycles:', value = 0),
-             checkboxInput("samples_failed_6", value = FALSE, label = "Check if failed"),
-             numericInput(inputId = 'samples_7', 'Sample 7 cycles:', value = 0),
-             checkboxInput("samples_failed_7", value = FALSE, label = "Check if failed"),
-             numericInput(inputId = 'samples_8', 'Sample 8 cycles:', value = 0),
-             checkboxInput("samples_failed_8", value = FALSE, label = "Check if failed")
-             )),
-    column(9,
-           plotlyOutput("p", height = "700px"))
+    column(
+      width = 3,
+      wellPanel(
+        numericInput(inputId = 'samples_1', 'Sample 1 cycles:', value = 0),
+        checkboxInput("samples_failed_1", value = FALSE, label = "Check if failed"),
+        numericInput(inputId = 'samples_2', 'Sample 2 cycles:', value = 0),
+        checkboxInput("samples_failed_2", value = FALSE, label = "Check if failed"),
+        numericInput(inputId = 'samples_3', 'Sample 3 cycles:', value = 0),
+        checkboxInput("samples_failed_3", value = FALSE, label = "Check if failed"),
+        numericInput(inputId = 'samples_4', 'Sample 4 cycles:', value = 0),
+        checkboxInput("samples_failed_4", value = FALSE, label = "Check if failed"),
+        numericInput(inputId = 'samples_5', 'Sample 5 cycles:', value = 0),
+        checkboxInput("samples_failed_5", value = FALSE, label = "Check if failed"),
+        numericInput(inputId = 'samples_6', 'Sample 6 cycles:', value = 0),
+        checkboxInput("samples_failed_6", value = FALSE, label = "Check if failed"),
+        numericInput(inputId = 'samples_7', 'Sample 7 cycles:', value = 0),
+        checkboxInput("samples_failed_7", value = FALSE, label = "Check if failed"),
+        numericInput(inputId = 'samples_8', 'Sample 8 cycles:', value = 0),
+        checkboxInput("samples_failed_8", value = FALSE, label = "Check if failed")
+      )
+    ),
+    
+    column(width = 9, plotlyOutput("p", height = "700px"))
   )
-  
 )
 
 # Calculate MTTF (Mean time to failure) ----
