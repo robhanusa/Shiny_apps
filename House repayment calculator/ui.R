@@ -21,11 +21,15 @@ ui <- fluidPage(
              checkboxInput(inputId = 'include_market_return', 'Compare to market return?'),
              numericInput(inputId = 'market_rate_yr', 'Market APY', 
                           value = 10, step = 1)
-           )),
+           )
+    ),
+    
     column(7,
-           plotlyOutput("p")),
+           plotlyOutput("p")
+    ),
+    
     column(2,
-           plotlyOutput("p2"))
+           plotlyOutput("p2")
+    )
   )
-
 )

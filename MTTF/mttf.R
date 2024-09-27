@@ -2,10 +2,12 @@ library(shiny)
 library(tidyverse)
 library(plotly)
 
-#UI----
+# UI ----
 ui <- fluidPage(
   titlePanel(title = "Mean time to failure calculator"),
-  p("Enter cycle count for each of up to 8 samples. Indicate if the sample failed or not. If less than 8 samples were used, leave the remaining boxes at 0 cycles and no failures"),
+  p("Enter cycle count for each of up to 8 samples. Indicate if the sample 
+    failed or not. If less than 8 samples were used, leave the remaining boxes 
+    at 0 cycles and indicate no failures"),
   fluidRow(
     column(3,
            wellPanel(
@@ -32,53 +34,74 @@ ui <- fluidPage(
   
 )
 
-#Calculate MTTF (Mean time to failure)----
-calc_mttf <- function(num_cycles_per_sample,cl,failures){
+# Calculate MTTF (Mean time to failure) ----
+calc_mttf <- function(num_cycles_per_sample, cl, failures) {
   num_cycles <- sum(num_cycles_per_sample)
   num_failures <- sum(failures)
-  mttf <- round(2*num_cycles/qchisq(1-cl/100,2*(num_failures+1),lower.tail = F))
-  return(mttf)
+  
+  mttf <- round(
+    2 * num_cycles / qchisq(
+      1 - cl / 100, 
+      2 * (num_failures + 1), 
+      lower.tail = FALSE
+    )
+  )
+  
+  return(mttf) 
 }
 
-#Server----
+# Server----
 server <- function(input,output,session) {
   output$p <- renderPlotly({
-    confidence <- seq(50,99.9,0.1)
+    confidence <- seq(50, 99.9, 0.1)
     
-    samples <- c(input$samples_1,
-                 input$samples_2,
-                 input$samples_3,
-                 input$samples_4,
-                 input$samples_5,
-                 input$samples_6,
-                 input$samples_7,
-                 input$samples_8)
-    samples_failed <- c(input$samples_failed_1,
-                        input$samples_failed_2,
-                        input$samples_failed_3,
-                        input$samples_failed_4,
-                        input$samples_failed_5,
-                        input$samples_failed_6,
-                        input$samples_failed_7,
-                        input$samples_failed_8)
+    samples <- c(
+      input$samples_1,
+      input$samples_2,
+      input$samples_3,
+      input$samples_4,
+      input$samples_5,
+      input$samples_6,
+      input$samples_7,
+      input$samples_8
+    )
     
-    #Make plot----
-    p <- plot_ly(x = ~confidence,
-                 y = ~calc_mttf(samples,confidence,samples_failed),
-                 hovertemplate = paste('Confidence level: %{x:.1f}%',
-                                       '<br>Number of cycles: %{y}',
-                                       '<extra></extra>'),
-                 showlegend = FALSE)%>%
+    samples_failed <- c(
+      input$samples_failed_1,
+      input$samples_failed_2,
+      input$samples_failed_3,
+      input$samples_failed_4,
+      input$samples_failed_5,
+      input$samples_failed_6,
+      input$samples_failed_7,
+      input$samples_failed_8
+    )
+    
+    # Make plot----
+    p <- plot_ly(
+      x = ~confidence,
+      y = ~calc_mttf(samples, confidence, samples_failed),
+      hovertemplate = paste(
+        'Confidence level: %{x:.1f}%',
+        '<br>Number of cycles: %{y}',
+        '<extra></extra>'
+      ),
+     showlegend = FALSE
+    ) %>%
       add_lines() %>%
-      #Add 95% Confidence indicator----
+      
+      # Add 95% Confidence indicator----
       layout(xaxis = list(title="Confidence level, %"),
-             yaxis = list(title="Mean time to failure, cycles"))%>%
-      add_trace(x = 95,
-                y = calc_mttf(samples,95,samples_failed),
-                type = 'scatter',
-                mode = 'markers', 
-                marker = list(color = 'rgb(242,142,43)', 
-                              size = 8)) 
+             yaxis = list(title="Mean time to failure, cycles")
+      ) %>%
+      
+      add_trace(
+        x = 95,
+        y = calc_mttf(samples, 95, samples_failed),
+        type = 'scatter',
+        mode = 'markers', 
+        marker = list(color = 'rgb(242, 142, 43)', size = 8)
+      ) 
   })
 }
 
